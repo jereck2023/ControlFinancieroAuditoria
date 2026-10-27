@@ -120,7 +120,8 @@ namespace ControlFinanciero.API.Migrations
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(100)")
+                        .UseCollation("Modern_Spanish_CI_AI");
 
                     b.HasKey("AreaId");
 

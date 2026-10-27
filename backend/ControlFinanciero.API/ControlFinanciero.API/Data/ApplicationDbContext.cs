@@ -22,7 +22,8 @@ namespace ControlFinanciero.API.Data
             {
                 entity.Property(a => a.Nombre)
                       .HasMaxLength(100)
-                      .IsRequired();
+                      .IsRequired()
+                      .UseCollation("Modern_Spanish_CI_AI");
 
                 entity.HasIndex(a => a.Nombre)
                       .IsUnique();
