@@ -110,14 +110,51 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
 
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
+        document.Components ??= new Microsoft.OpenApi.Models.OpenApiComponents();
+
+        document.Components.SecuritySchemes["Bearer"] =
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                Description = "Ingresa tu token JWT"
+            };
+
+        document.SecurityRequirements.Add(
+            new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+            {
+                [new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                {
+                    Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                    {
+                        Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                }] = Array.Empty<string>()
+            });
+
+        return Task.CompletedTask;
+    });
+});
+
+builder.Services.AddScoped<ExcelFinancieroService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "CFA API v1");
+    });
 }
 
 app.UseHttpsRedirection();

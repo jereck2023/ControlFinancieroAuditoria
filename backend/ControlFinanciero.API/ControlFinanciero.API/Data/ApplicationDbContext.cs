@@ -1,4 +1,5 @@
-﻿using ControlFinanciero.API.Models;
+﻿
+using ControlFinanciero.API.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -40,8 +41,80 @@ namespace ControlFinanciero.API.Data
                       .HasForeignKey(u => u.AreaId)
                       .OnDelete(DeleteBehavior.Restrict);
             });
+
+            builder.Entity<RegistroFinanciero>(entity =>
+            {
+                entity.HasKey(r => r.RegistroFinancieroId);
+
+                entity.Property(r => r.TipoOperacion)
+                      .HasMaxLength(10)
+                      .IsRequired();
+
+                entity.Property(r => r.Descripcion)
+                      .HasMaxLength(250)
+                      .IsRequired();
+
+                entity.Property(r => r.FechaOperacion)
+                      .HasColumnType("date");
+
+                entity.Property(r => r.Monto)
+                      .HasPrecision(18, 2);
+
+                entity.Property(r => r.RowVersion)
+                      .IsRowVersion();
+
+                entity.HasOne(r => r.Area)
+                      .WithMany()
+                      .HasForeignKey(r => r.AreaId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(r => r.Usuario)
+                      .WithMany()
+                      .HasForeignKey(r => r.UsuarioId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.ToTable(tabla =>
+                {
+                    tabla.HasCheckConstraint(
+                        "CK_RegistroFinanciero_TipoOperacion",
+                        "[TipoOperacion] IN (N'Ingreso', N'Egreso')");
+
+                    tabla.HasCheckConstraint(
+                        "CK_RegistroFinanciero_Monto",
+                        "[Monto] > 0");
+                });
+            });
+
+            builder.Entity<HistorialAuditoria>(entity =>
+            {
+                entity.HasKey(h => h.HistorialAuditoriaId);
+
+                entity.Property(h => h.FechaHora)
+                      .HasColumnType("datetime2");
+
+                entity.Property(h => h.TipoAccion)
+                      .HasMaxLength(30)
+                      .IsRequired();
+
+                entity.Property(h => h.ValoresModificados)
+                      .IsRequired();
+
+                entity.HasOne(h => h.Usuario)
+                      .WithMany()
+                      .HasForeignKey(h => h.UsuarioId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(h => h.RegistroFinanciero)
+                      .WithMany()
+                      .HasForeignKey(h => h.RegistroFinancieroId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
         }
 
         public DbSet<Area> Areas { get; set; }
+
+        public DbSet<RegistroFinanciero> RegistrosFinancieros { get; set; }
+
+        public DbSet<HistorialAuditoria> HistorialesAuditoria { get; set; }
     }
 }
