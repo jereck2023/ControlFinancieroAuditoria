@@ -12,5 +12,7 @@
         public int UsuarioId { get; set; }
         public ApplicationUser Usuario { get; set; } = null!;
         public byte[] RowVersion { get; set; } = Array.Empty<byte>();
+        public int? DocumentoFinancieroId { get; set; }
+        public DocumentoFinanciero? DocumentoFinanciero { get; set; }
     }
 }

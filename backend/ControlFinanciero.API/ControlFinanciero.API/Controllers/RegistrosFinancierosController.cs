@@ -572,6 +572,7 @@ namespace ControlFinanciero.API.Controllers
             }
 
             VistaPreviaExcelResponse resultado;
+            string hashActual;
 
             try
             {
@@ -582,7 +583,7 @@ namespace ControlFinanciero.API.Controllers
 
                 byte[] contenido = memoria.ToArray();
 
-                string hashActual = Convert.ToHexString(
+                hashActual = Convert.ToHexString(
                     SHA256.HashData(contenido));
 
                 if (string.IsNullOrWhiteSpace(hashArchivo) ||
@@ -623,8 +624,49 @@ namespace ControlFinanciero.API.Controllers
                 });
             }
 
+            var nombreArchivo = Path.GetFileName(
+                archivo.FileName.Replace('\\', '/'));
+
+            if (string.IsNullOrWhiteSpace(nombreArchivo) ||
+                nombreArchivo.Length > 255)
+            {
+                return BadRequest(new
+                {
+                    mensaje = "El nombre del archivo no es valido o supera los 255 caracteres."
+                });
+            }
+
+            var areaId = usuario.AreaId!.Value;
+
             await using var transaccion =
                 await _context.Database.BeginTransactionAsync();
+
+            var documento = new DocumentoFinanciero
+            {
+                NombreArchivo = nombreArchivo,
+                AreaId = areaId,
+                UsuarioId = usuario.Id,
+                FechaImportacion = DateTime.UtcNow,
+                HashArchivo = hashActual
+            };
+
+            _context.DocumentosFinancieros.Add(documento);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
+                when (ex.InnerException is Microsoft.Data.SqlClient.SqlException sql &&
+                      (sql.Number == 2601 || sql.Number == 2627))
+            {
+                await transaccion.RollbackAsync();
+
+                return Conflict(new
+                {
+                    mensaje = "Este archivo Excel ya fue importado en el area.",
+                });
+            }
 
             var registros = resultado.Registros.Select(fila =>
                 new RegistroFinanciero
@@ -633,8 +675,9 @@ namespace ControlFinanciero.API.Controllers
                     Descripcion = fila.Descripcion,
                     FechaOperacion = fila.FechaOperacion,
                     Monto = fila.Monto,
-                    AreaId = usuario.AreaId!.Value,
-                    UsuarioId = usuario.Id
+                    AreaId = areaId,
+                    UsuarioId = usuario.Id,
+                    DocumentoFinancieroId = documento.DocumentoFinancieroId
                 }).ToList();
 
             _context.RegistrosFinancieros.AddRange(registros);
@@ -660,7 +703,8 @@ namespace ControlFinanciero.API.Controllers
                             registro.FechaOperacion,
                             registro.Monto,
                             registro.AreaId,
-                            registro.UsuarioId
+                            registro.UsuarioId,
+                            registro.DocumentoFinancieroId
                         }
                     })
                 }).ToList();
@@ -674,6 +718,8 @@ namespace ControlFinanciero.API.Controllers
             return Ok(new
             {
                 mensaje = "Importacion realizada correctamente.",
+                documentoFinancieroId = documento.DocumentoFinancieroId,
+                nombreArchivo = documento.NombreArchivo,
                 totalImportados = registros.Count,
                 registrosIds = registros.Select(
                     r => r.RegistroFinancieroId).ToList()

@@ -131,6 +131,44 @@ namespace ControlFinanciero.API.Migrations
                     b.ToTable("Areas");
                 });
 
+            modelBuilder.Entity("ControlFinanciero.API.Models.DocumentoFinanciero", b =>
+                {
+                    b.Property<int>("DocumentoFinancieroId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DocumentoFinancieroId"));
+
+                    b.Property<int>("AreaId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("FechaImportacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("HashArchivo")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("NombreArchivo")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("DocumentoFinancieroId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.HasIndex("AreaId", "HashArchivo")
+                        .IsUnique();
+
+                    b.ToTable("DocumentosFinancieros");
+                });
+
             modelBuilder.Entity("ControlFinanciero.API.Models.HistorialAuditoria", b =>
                 {
                     b.Property<int>("HistorialAuditoriaId")
@@ -187,6 +225,9 @@ namespace ControlFinanciero.API.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
+                    b.Property<int?>("DocumentoFinancieroId")
+                        .HasColumnType("int");
+
                     b.Property<DateOnly>("FechaOperacion")
                         .HasColumnType("date");
 
@@ -211,6 +252,8 @@ namespace ControlFinanciero.API.Migrations
                     b.HasKey("RegistroFinancieroId");
 
                     b.HasIndex("AreaId");
+
+                    b.HasIndex("DocumentoFinancieroId");
 
                     b.HasIndex("UsuarioId");
 
@@ -365,6 +408,25 @@ namespace ControlFinanciero.API.Migrations
                     b.Navigation("Area");
                 });
 
+            modelBuilder.Entity("ControlFinanciero.API.Models.DocumentoFinanciero", b =>
+                {
+                    b.HasOne("ControlFinanciero.API.Models.Area", "Area")
+                        .WithMany()
+                        .HasForeignKey("AreaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ControlFinanciero.API.Models.ApplicationUser", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Area");
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("ControlFinanciero.API.Models.HistorialAuditoria", b =>
                 {
                     b.HasOne("ControlFinanciero.API.Models.RegistroFinanciero", "RegistroFinanciero")
@@ -392,6 +454,11 @@ namespace ControlFinanciero.API.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("ControlFinanciero.API.Models.DocumentoFinanciero", "DocumentoFinanciero")
+                        .WithMany("RegistrosFinancieros")
+                        .HasForeignKey("DocumentoFinancieroId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("ControlFinanciero.API.Models.ApplicationUser", "Usuario")
                         .WithMany()
                         .HasForeignKey("UsuarioId")
@@ -399,6 +466,8 @@ namespace ControlFinanciero.API.Migrations
                         .IsRequired();
 
                     b.Navigation("Area");
+
+                    b.Navigation("DocumentoFinanciero");
 
                     b.Navigation("Usuario");
                 });
@@ -457,6 +526,11 @@ namespace ControlFinanciero.API.Migrations
             modelBuilder.Entity("ControlFinanciero.API.Models.Area", b =>
                 {
                     b.Navigation("Usuarios");
+                });
+
+            modelBuilder.Entity("ControlFinanciero.API.Models.DocumentoFinanciero", b =>
+                {
+                    b.Navigation("RegistrosFinancieros");
                 });
 #pragma warning restore 612, 618
         }

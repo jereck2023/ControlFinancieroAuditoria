@@ -26,6 +26,7 @@ namespace ControlFinanciero.API.Controllers
         [HttpGet]
         public async Task<IActionResult> ObtenerHistorial(
             [FromQuery] int? registroFinancieroId,
+            [FromQuery] int? documentoFinancieroId,
             [FromQuery] int? usuarioId,
             [FromQuery] string? tipoAccion,
             [FromQuery] DateTime? fechaDesde,
@@ -96,6 +97,11 @@ namespace ControlFinanciero.API.Controllers
                 consulta = consulta.Where(h =>
                     h.RegistroFinancieroId == registroFinancieroId.Value);
 
+            if (documentoFinancieroId.HasValue)
+                consulta = consulta.Where(h =>
+                    h.RegistroFinanciero.DocumentoFinancieroId ==
+                    documentoFinancieroId.Value);
+
             if (usuarioId.HasValue)
                 consulta = consulta.Where(h =>
                     h.UsuarioId == usuarioId.Value);
@@ -125,6 +131,8 @@ namespace ControlFinanciero.API.Controllers
                 {
                     HistorialAuditoriaId = h.HistorialAuditoriaId,
                     RegistroFinancieroId = h.RegistroFinancieroId,
+                    DocumentoFinancieroId = h.RegistroFinanciero.DocumentoFinancieroId,
+                    NombreDocumento = h.RegistroFinanciero.DocumentoFinanciero != null ? h.RegistroFinanciero.DocumentoFinanciero.NombreArchivo : "Sin documento de origen",
                     AreaId = h.RegistroFinanciero.AreaId,
                     NombreArea = h.RegistroFinanciero.Area.Nombre,
                     UsuarioId = h.UsuarioId,
@@ -171,6 +179,8 @@ namespace ControlFinanciero.API.Controllers
                 {
                     h.HistorialAuditoriaId,
                     h.RegistroFinancieroId,
+                    DocumentoFinancieroId = h.RegistroFinanciero.DocumentoFinancieroId,
+                    NombreDocumento = h.RegistroFinanciero.DocumentoFinanciero != null ? h.RegistroFinanciero.DocumentoFinanciero.NombreArchivo : "Sin documento de origen",
                     AreaId = h.RegistroFinanciero.AreaId,
                     NombreArea = h.RegistroFinanciero.Area.Nombre,
                     h.UsuarioId,
@@ -194,6 +204,8 @@ namespace ControlFinanciero.API.Controllers
             {
                 HistorialAuditoriaId = historial.HistorialAuditoriaId,
                 RegistroFinancieroId = historial.RegistroFinancieroId,
+                DocumentoFinancieroId = historial.DocumentoFinancieroId,
+                NombreDocumento = historial.NombreDocumento,
                 AreaId = historial.AreaId,
                 NombreArea = historial.NombreArea,
                 UsuarioId = historial.UsuarioId,

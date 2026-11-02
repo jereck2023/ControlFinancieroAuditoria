@@ -6,6 +6,10 @@
 
         public int RegistroFinancieroId { get; set; }
 
+        public int? DocumentoFinancieroId { get; set; }
+
+        public string NombreDocumento { get; set; } = "Sin documento de origen";
+
         public int AreaId { get; set; }
 
         public string NombreArea { get; set; } = string.Empty;

@@ -42,6 +42,37 @@ namespace ControlFinanciero.API.Data
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
+            builder.Entity<DocumentoFinanciero>(entity =>
+            {
+                entity.HasKey(d => d.DocumentoFinancieroId);
+
+                entity.Property(d => d.NombreArchivo)
+                      .HasMaxLength(255)
+                      .IsRequired();
+
+                entity.Property(d => d.FechaImportacion)
+                      .HasColumnType("datetime2");
+
+                entity.Property(d => d.HashArchivo)
+                      .HasMaxLength(64)
+                      .IsUnicode(false)
+                      .IsRequired();
+
+                entity.HasIndex(d => new { d.AreaId, d.HashArchivo })
+                      .IsUnique();
+
+                entity.HasOne(d => d.Area)
+                      .WithMany()
+                      .HasForeignKey(d => d.AreaId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(d => d.Usuario)
+                      .WithMany()
+                      .HasForeignKey(d => d.UsuarioId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+
             builder.Entity<RegistroFinanciero>(entity =>
             {
                 entity.HasKey(r => r.RegistroFinancieroId);
@@ -62,6 +93,11 @@ namespace ControlFinanciero.API.Data
 
                 entity.Property(r => r.RowVersion)
                       .IsRowVersion();
+
+                entity.HasOne(r => r.DocumentoFinanciero)
+                      .WithMany(d => d.RegistrosFinancieros)
+                      .HasForeignKey(r => r.DocumentoFinancieroId)
+                      .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(r => r.Area)
                       .WithMany()
@@ -121,5 +157,8 @@ namespace ControlFinanciero.API.Data
         public DbSet<RegistroFinanciero> RegistrosFinancieros { get; set; }
 
         public DbSet<HistorialAuditoria> HistorialesAuditoria { get; set; }
+
+        public DbSet<DocumentoFinanciero> DocumentosFinancieros { get; set; }
+
     }
 }
