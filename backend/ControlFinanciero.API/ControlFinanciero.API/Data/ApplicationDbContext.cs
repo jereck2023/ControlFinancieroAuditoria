@@ -87,6 +87,11 @@ namespace ControlFinanciero.API.Data
 
             builder.Entity<HistorialAuditoria>(entity =>
             {
+                entity.ToTable("HistorialesAuditoria", tabla =>
+                {
+                    tabla.HasTrigger("TR_HistorialesAuditoria_Proteger");
+                });
+
                 entity.HasKey(h => h.HistorialAuditoriaId);
 
                 entity.Property(h => h.FechaHora)

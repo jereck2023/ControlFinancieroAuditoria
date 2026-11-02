@@ -163,7 +163,12 @@ namespace ControlFinanciero.API.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("HistorialesAuditoria");
+                    b.ToTable("HistorialesAuditoria", null, t =>
+                        {
+                            t.HasTrigger("TR_HistorialesAuditoria_Proteger");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("ControlFinanciero.API.Models.RegistroFinanciero", b =>
