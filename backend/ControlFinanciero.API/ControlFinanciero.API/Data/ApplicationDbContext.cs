@@ -150,6 +150,66 @@ namespace ControlFinanciero.API.Data
                       .HasForeignKey(h => h.RegistroFinancieroId)
                       .OnDelete(DeleteBehavior.Restrict);
             });
+
+            builder.Entity<BitacoraActividad>(entity =>
+            {
+                entity.ToTable("BitacorasActividades", tabla =>
+                {
+                    tabla.HasTrigger("TR_BitacorasActividades_Proteger");
+                });
+
+                entity.HasKey(b => b.BitacoraActividadId);
+
+                entity.Property(b => b.FechaHora)
+                      .HasColumnType("datetime2");
+
+                entity.Property(b => b.TipoActividad)
+                      .HasMaxLength(60)
+                      .IsRequired();
+
+                entity.Property(b => b.Resultado)
+                      .HasMaxLength(20)
+                      .IsRequired();
+
+                entity.Property(b => b.NombreUsuario)
+                      .HasMaxLength(256)
+                      .IsRequired();
+
+                entity.Property(b => b.NombreDocumento)
+                      .HasMaxLength(255);
+
+                entity.Property(b => b.DireccionIp)
+                      .HasMaxLength(45);
+
+                entity.Property(b => b.Detalle)
+                      .HasMaxLength(2000);
+
+                entity.HasOne(b => b.Usuario)
+                      .WithMany()
+                      .HasForeignKey(b => b.UsuarioId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(b => b.Area)
+                      .WithMany()
+                      .HasForeignKey(b => b.AreaId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(b => b.DocumentoFinanciero)
+                      .WithMany()
+                      .HasForeignKey(b => b.DocumentoFinancieroId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(b => b.RegistroFinanciero)
+                      .WithMany()
+                      .HasForeignKey(b => b.RegistroFinancieroId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasIndex(b => b.FechaHora);
+
+                entity.HasIndex(b => new { b.AreaId, b.FechaHora });
+
+                entity.HasIndex(b => new { b.UsuarioId, b.FechaHora });
+            });
         }
 
         public DbSet<Area> Areas { get; set; }
@@ -160,5 +220,6 @@ namespace ControlFinanciero.API.Data
 
         public DbSet<DocumentoFinanciero> DocumentosFinancieros { get; set; }
 
+        public DbSet<BitacoraActividad> BitacorasActividades { get; set; }
     }
 }

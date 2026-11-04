@@ -144,6 +144,8 @@ builder.Services.AddOpenApi(options =>
 });
 
 builder.Services.AddScoped<ExcelFinancieroService>();
+builder.Services.AddScoped<BitacoraActividadService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

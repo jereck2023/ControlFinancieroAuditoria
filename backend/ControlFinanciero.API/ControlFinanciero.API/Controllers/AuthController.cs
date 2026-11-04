@@ -7,7 +7,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
+using ControlFinanciero.API.Services;
+using ControlFinanciero.API.Data;
 
 namespace ControlFinanciero.API.Controllers
 {
@@ -17,13 +18,38 @@ namespace ControlFinanciero.API.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _configuration;
+        private readonly BitacoraActividadService _bitacoraService;
+        private readonly ApplicationDbContext _context;
 
         public AuthController(
             UserManager<ApplicationUser> userManager,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            BitacoraActividadService bitacoraService,
+            ApplicationDbContext context)
         {
             _userManager = userManager;
             _configuration = configuration;
+            _bitacoraService = bitacoraService;
+            _context = context;
+        }
+
+        private async Task RegistrarLoginAsync(
+            string tipoActividad,
+            string resultado,
+            ApplicationUser? usuario,
+            string nombreUsuario,
+            string detalle)
+        {
+            await _bitacoraService.RegistrarAsync(new BitacoraActividad
+            {
+                TipoActividad = tipoActividad,
+                Resultado = resultado,
+                UsuarioId = usuario?.Id,
+                NombreUsuario = usuario?.UserName ?? nombreUsuario,
+                AreaId = usuario?.AreaId,
+                DireccionIp = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                Detalle = detalle
+            });
         }
 
         [HttpPost("login")]
@@ -33,6 +59,15 @@ namespace ControlFinanciero.API.Controllers
 
             if (user == null || !user.Activo)
             {
+                await RegistrarLoginAsync(
+                    "LoginFallido",
+                    "Fallido",
+                    user,
+                    request.Username,
+                    user == null
+                        ? "Usuario inexistente."
+                        : "Usuario inactivo.");
+
                 return Unauthorized(new
                 {
                     mensaje = "Usuario o contraseña incorrectos."
@@ -41,11 +76,19 @@ namespace ControlFinanciero.API.Controllers
 
             if (await _userManager.IsLockedOutAsync(user))
             {
+                await RegistrarLoginAsync(
+                    "LoginFallido",
+                    "Fallido",
+                    user,
+                    request.Username,
+                    "Intento de acceso a una cuenta bloqueada.");
+
                 return Unauthorized(new
                 {
                     mensaje = "Cuenta bloqueada temporalmente."
                 });
             }
+
 
             var passwordValida = await _userManager.CheckPasswordAsync(
                 user, request.Password);
@@ -53,6 +96,13 @@ namespace ControlFinanciero.API.Controllers
             if (!passwordValida)
             {
                 var resultado = await _userManager.AccessFailedAsync(user);
+
+                await RegistrarLoginAsync(
+                    "LoginFallido",
+                    "Fallido",
+                    user,
+                    request.Username,
+                    "Contraseña incorrecta.");
 
                 return Unauthorized(new
                 {
@@ -115,6 +165,14 @@ namespace ControlFinanciero.API.Controllers
             var tokenString = new JwtSecurityTokenHandler()
                 .WriteToken(token);
 
+            await RegistrarLoginAsync(
+                "LoginExitoso",
+                "Exitoso",
+                user,
+                request.Username,
+                "Inicio de sesión exitoso.");
+
+
             return Ok(new
             {
                 mensaje = "Inicio de sesión correcto.",
@@ -152,6 +210,8 @@ namespace ControlFinanciero.API.Controllers
                 });
             }
 
+            await using var transaccion = await _context.Database.BeginTransactionAsync();
+
             var resultado = await _userManager.ChangePasswordAsync(
                 user,
                 request.PasswordActual,
@@ -159,6 +219,8 @@ namespace ControlFinanciero.API.Controllers
 
             if (!resultado.Succeeded)
             {
+                await transaccion.RollbackAsync();
+
                 return BadRequest(new
                 {
                     mensaje = "No se pudo cambiar la contraseña.",
@@ -172,11 +234,28 @@ namespace ControlFinanciero.API.Controllers
 
             if (!actualizacion.Succeeded)
             {
+                await transaccion.RollbackAsync();
+
                 return StatusCode(500, new
                 {
-                    mensaje = "La contraseña cambió, pero no se pudo actualizar el estado del usuario."
+                    mensaje = "No se pudo completar el cambio de contraseña."
                 });
             }
+
+            _bitacoraService.PrepararRegistro(new BitacoraActividad
+            {
+                TipoActividad = "CambioPassword",
+                Resultado = "Exitoso",
+                UsuarioId = user.Id,
+                NombreUsuario = user.UserName ?? string.Empty,
+                AreaId = user.AreaId,
+                DireccionIp = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                Detalle = "Cambio de contraseña realizado correctamente."
+            });
+
+            await _context.SaveChangesAsync();
+
+            await transaccion.CommitAsync();
 
             return Ok(new
             {

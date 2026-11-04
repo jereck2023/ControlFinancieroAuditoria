@@ -7,6 +7,7 @@ using ControlFinanciero.API.Constants;
 using ControlFinanciero.API.DTOs;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
+using ControlFinanciero.API.Services;
 
 namespace ControlFinanciero.API.Controllers
 {
@@ -18,15 +19,45 @@ namespace ControlFinanciero.API.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
         private readonly RoleManager<IdentityRole<int>> _roleManager;
+        private readonly BitacoraActividadService _bitacoraService;
 
         public UsuariosController(
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole<int>> roleManager,
-            ApplicationDbContext context)
+            ApplicationDbContext context,
+            BitacoraActividadService bitacoraService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _context = context;
+            _bitacoraService = bitacoraService;
+        }
+
+        private async Task RegistrarActividadAdministrativaAsync(
+            string tipoActividad,
+            int? areaId,
+            string detalle)
+        {
+            var administrador = await _userManager.GetUserAsync(User);
+
+            if (administrador == null || !administrador.Activo)
+            {
+                throw new InvalidOperationException(
+                    "No se pudo identificar al administrador responsable.");
+            }
+
+            _bitacoraService.PrepararRegistro(new BitacoraActividad
+            {
+                TipoActividad = tipoActividad,
+                Resultado = "Exitoso",
+                UsuarioId = administrador.Id,
+                NombreUsuario = administrador.UserName ?? string.Empty,
+                AreaId = areaId,
+                DireccionIp = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                Detalle = detalle
+            });
+
+            await _context.SaveChangesAsync();
         }
 
         [HttpPost]
@@ -196,6 +227,29 @@ namespace ControlFinanciero.API.Controllers
                     errores = resultadoRoles.Errors.Select(e => e.Description)
                 });
             }
+
+            var administradorActual = await _userManager.GetUserAsync(User);
+
+            if (administradorActual == null)
+            {
+                return Unauthorized(new
+                {
+                    mensaje = "No se pudo identificar al administrador."
+                });
+            }
+
+            _bitacoraService.PrepararRegistro(new BitacoraActividad
+            {
+                TipoActividad = "CreacionUsuario",
+                Resultado = "Exitoso",
+                UsuarioId = administradorActual.Id,
+                NombreUsuario = administradorActual.UserName ?? string.Empty,
+                AreaId = usuario.AreaId,
+                DireccionIp = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                Detalle = $"Creación del usuario {usuario.UserName} (ID: {usuario.Id}). Roles asignados: {string.Join(", ", rolesSolicitados)}."
+            });
+
+            await _context.SaveChangesAsync();
 
             await transaccion.CommitAsync();
 
@@ -396,6 +450,11 @@ namespace ControlFinanciero.API.Controllers
                     });
                 }
             }
+
+            await RegistrarActividadAdministrativaAsync(
+                "ActualizacionUsuario",
+                usuario.AreaId,
+                $"Actualización del usuario {usuario.UserName} (ID: {usuario.Id}).");
 
             await transaccion.CommitAsync();
 
@@ -651,6 +710,13 @@ namespace ControlFinanciero.API.Controllers
                 });
             }
 
+            await RegistrarActividadAdministrativaAsync(
+                "CambioRoles",
+                usuario.AreaId,
+                $"Cambio de roles del usuario {usuario.UserName} (ID: {usuario.Id}). " +
+                $"Roles retirados: {(rolesQuitar.Count > 0 ? string.Join(", ", rolesQuitar) : "Ninguno")}. " +
+                $"Roles agregados: {(rolesAgregar.Count > 0 ? string.Join(", ", rolesAgregar) : "Ninguno")}.");
+
             await transaccion.CommitAsync();
 
             return Ok(new
@@ -809,6 +875,11 @@ namespace ControlFinanciero.API.Controllers
                 });
             }
 
+            await RegistrarActividadAdministrativaAsync(
+                "CambioEstadoUsuario",
+                usuario.AreaId,
+                $"Desactivación del usuario {usuario.UserName} (ID: {usuario.Id}).");
+
             await transaccion.CommitAsync();
 
             return Ok(new
@@ -896,6 +967,11 @@ namespace ControlFinanciero.API.Controllers
                 });
             }
 
+            await RegistrarActividadAdministrativaAsync(
+                "CambioEstadoUsuario",
+                usuario.AreaId,
+                $"Activación del usuario {usuario.UserName} (ID: {usuario.Id}).");
+
             await transaccion.CommitAsync();
 
             return Ok(new
@@ -981,6 +1057,11 @@ namespace ControlFinanciero.API.Controllers
                     mensaje = "No se pudo completar el restablecimiento de contraseña."
                 });
             }
+
+            await RegistrarActividadAdministrativaAsync(
+                "RestablecimientoPassword",
+                usuario.AreaId,
+                $"Restablecimiento administrativo de contraseña del usuario {usuario.UserName} (ID: {usuario.Id}).");
 
             await transaccion.CommitAsync();
 

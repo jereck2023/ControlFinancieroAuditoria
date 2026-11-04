@@ -20,13 +20,16 @@ namespace ControlFinanciero.API.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly ExcelFinancieroService _excelService;
+        private readonly BitacoraActividadService _bitacoraService;
 
         public RegistrosFinancierosController(
             ApplicationDbContext context,
-            ExcelFinancieroService excelService)
+            ExcelFinancieroService excelService,
+            BitacoraActividadService bitacoraService)
         {
             _context = context;
             _excelService = excelService;
+            _bitacoraService = bitacoraService;
         }
 
         [HttpGet]
@@ -73,6 +76,20 @@ namespace ControlFinanciero.API.Controllers
                     RowVersion = Convert.ToBase64String(r.RowVersion)
                 })
                 .ToListAsync();
+
+            await _bitacoraService.RegistrarConsultaAsync(
+                new BitacoraActividad
+                {
+                    TipoActividad = "ConsultaListadoFinanciero",
+                    Resultado = "Exitoso",
+                    UsuarioId = usuario.Id,
+                    NombreUsuario = usuario.UserName ?? string.Empty,
+                    AreaId = User.IsInRole(Roles.Auditor)
+                        ? null
+                        : usuario.AreaId,
+                    DireccionIp = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                    Detalle = "Consulta del listado general de registros financieros."
+                });
 
             return Ok(registros);
         }
@@ -127,6 +144,19 @@ namespace ControlFinanciero.API.Controllers
                 return NotFound(new
                 {
                     mensaje = "Registro financiero no encontrado."
+                });
+
+            await _bitacoraService.RegistrarConsultaAsync(
+                new BitacoraActividad
+                {
+                    TipoActividad = "ConsultaDetalleFinanciero",
+                    Resultado = "Exitoso",
+                    UsuarioId = usuario.Id,
+                    NombreUsuario = usuario.UserName ?? string.Empty,
+                    AreaId = registro.AreaId,
+                    RegistroFinancieroId = registro.RegistroFinancieroId,
+                    DireccionIp = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                    Detalle = $"Consulta del registro financiero ID: {registro.RegistroFinancieroId}."
                 });
 
             return Ok(registro);
@@ -432,6 +462,20 @@ namespace ControlFinanciero.API.Controllers
             string nombreArchivo =
                 $"CFA_RegistrosFinancieros_{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx";
 
+            await _bitacoraService.RegistrarAsync(
+                new BitacoraActividad
+                {
+                    TipoActividad = "ExportacionExcel",
+                    Resultado = "Exitoso",
+                    UsuarioId = usuario.Id,
+                    NombreUsuario = usuario.UserName ?? string.Empty,
+                    AreaId = User.IsInRole(Roles.Auditor)
+                        ? null
+                        : usuario.AreaId,
+                    DireccionIp = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                    Detalle = $"Exportación general de registros financieros. Total de registros: {registros.Count}."
+                });
+
             return File(
                 contenido,
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -710,6 +754,23 @@ namespace ControlFinanciero.API.Controllers
                 }).ToList();
 
             _context.HistorialesAuditoria.AddRange(historiales);
+
+            await _context.SaveChangesAsync();
+
+            _bitacoraService.PrepararRegistro(new BitacoraActividad
+            {
+                TipoActividad = "ImportacionExcel",
+                Resultado = "Exitoso",
+                UsuarioId = usuario.Id,
+                NombreUsuario = usuario.UserName ?? string.Empty,
+                AreaId = documento.AreaId,
+                DocumentoFinancieroId = documento.DocumentoFinancieroId,
+                NombreDocumento = documento.NombreArchivo,
+                DireccionIp = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                Detalle = $"Importación del documento {documento.NombreArchivo} " +
+                          $"(ID: {documento.DocumentoFinancieroId}). " +
+                          $"Total de registros importados: {registros.Count}."
+            });
 
             await _context.SaveChangesAsync();
 

@@ -131,6 +131,76 @@ namespace ControlFinanciero.API.Migrations
                     b.ToTable("Areas");
                 });
 
+            modelBuilder.Entity("ControlFinanciero.API.Models.BitacoraActividad", b =>
+                {
+                    b.Property<int>("BitacoraActividadId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BitacoraActividadId"));
+
+                    b.Property<int?>("AreaId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Detalle")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("DireccionIp")
+                        .HasMaxLength(45)
+                        .HasColumnType("nvarchar(45)");
+
+                    b.Property<int?>("DocumentoFinancieroId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("FechaHora")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NombreDocumento")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("NombreUsuario")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<int?>("RegistroFinancieroId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Resultado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("TipoActividad")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<int?>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("BitacoraActividadId");
+
+                    b.HasIndex("DocumentoFinancieroId");
+
+                    b.HasIndex("FechaHora");
+
+                    b.HasIndex("RegistroFinancieroId");
+
+                    b.HasIndex("AreaId", "FechaHora");
+
+                    b.HasIndex("UsuarioId", "FechaHora");
+
+                    b.ToTable("BitacorasActividades", null, t =>
+                        {
+                            t.HasTrigger("TR_BitacorasActividades_Proteger");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
             modelBuilder.Entity("ControlFinanciero.API.Models.DocumentoFinanciero", b =>
                 {
                     b.Property<int>("DocumentoFinancieroId")
@@ -406,6 +476,37 @@ namespace ControlFinanciero.API.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Area");
+                });
+
+            modelBuilder.Entity("ControlFinanciero.API.Models.BitacoraActividad", b =>
+                {
+                    b.HasOne("ControlFinanciero.API.Models.Area", "Area")
+                        .WithMany()
+                        .HasForeignKey("AreaId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ControlFinanciero.API.Models.DocumentoFinanciero", "DocumentoFinanciero")
+                        .WithMany()
+                        .HasForeignKey("DocumentoFinancieroId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ControlFinanciero.API.Models.RegistroFinanciero", "RegistroFinanciero")
+                        .WithMany()
+                        .HasForeignKey("RegistroFinancieroId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ControlFinanciero.API.Models.ApplicationUser", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Area");
+
+                    b.Navigation("DocumentoFinanciero");
+
+                    b.Navigation("RegistroFinanciero");
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("ControlFinanciero.API.Models.DocumentoFinanciero", b =>

@@ -1,11 +1,12 @@
 ﻿using ControlFinanciero.API.Data;
 using ControlFinanciero.API.DTOs;
 using ControlFinanciero.API.Models;
+using ControlFinanciero.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace ControlFinanciero.API.Controllers
 {
@@ -15,11 +16,48 @@ namespace ControlFinanciero.API.Controllers
     public class AreasController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly BitacoraActividadService _bitacoraService;
 
-        public AreasController(ApplicationDbContext context)
+        public AreasController(
+            ApplicationDbContext context,
+            BitacoraActividadService bitacoraService)
         {
             _context = context;
+            _bitacoraService = bitacoraService;
         }
+
+        private async Task PrepararActividadAreaAsync(
+            string tipoActividad,
+            Area area,
+            string detalle)
+        {
+            var idTexto = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? User.FindFirst("sub")?.Value;
+
+            if (!int.TryParse(idTexto, out var administradorId))
+                throw new InvalidOperationException(
+                    "No se pudo identificar al administrador.");
+
+            var administrador = await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == administradorId && u.Activo);
+
+            if (administrador == null)
+                throw new InvalidOperationException(
+                    "No se pudo identificar al administrador activo.");
+
+            _bitacoraService.PrepararRegistro(new BitacoraActividad
+            {
+                TipoActividad = tipoActividad,
+                Resultado = "Exitoso",
+                UsuarioId = administrador.Id,
+                NombreUsuario = administrador.UserName ?? string.Empty,
+                AreaId = area.AreaId,
+                DireccionIp = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                Detalle = detalle
+            });
+        }
+
 
         [HttpGet]
         public async Task<ActionResult<List<AreaResponse>>> ObtenerAreas()
@@ -71,6 +109,9 @@ namespace ControlFinanciero.API.Controllers
                 Activo = true
             };
 
+            await using var transaccion =
+                await _context.Database.BeginTransactionAsync();
+
             _context.Areas.Add(area);
             try
             {
@@ -85,6 +126,14 @@ namespace ControlFinanciero.API.Controllers
                     mensaje = "Ya existe un área con ese nombre."
                 });
             }
+
+            await PrepararActividadAreaAsync(
+                "CreacionArea",
+                area,
+                $"Creación del área {area.Nombre} (ID: {area.AreaId}).");
+
+            await _context.SaveChangesAsync();
+            await transaccion.CommitAsync();
 
             var respuesta = new AreaResponse
             {
@@ -135,6 +184,11 @@ namespace ControlFinanciero.API.Controllers
 
             area.Nombre = nombre;
 
+            await PrepararActividadAreaAsync(
+                "ActualizacionArea",
+                area,
+                $"Actualización del área {area.Nombre} (ID: {area.AreaId}).");
+
             try
             {
                 await _context.SaveChangesAsync();
@@ -182,6 +236,11 @@ namespace ControlFinanciero.API.Controllers
 
             area.Activo = false;
 
+            await PrepararActividadAreaAsync(
+                "ActualizacionArea",
+                area,
+                $"Desactivación del área {area.Nombre} (ID: {area.AreaId}).");
+
             await _context.SaveChangesAsync();
 
             return Ok(new AreaResponse
@@ -216,6 +275,11 @@ namespace ControlFinanciero.API.Controllers
             }
 
             area.Activo = true;
+
+            await PrepararActividadAreaAsync(
+                "ActualizacionArea",
+                area,
+                $"Activación del área {area.Nombre} (ID: {area.AreaId}).");
 
             await _context.SaveChangesAsync();
 

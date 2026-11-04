@@ -19,15 +19,49 @@ namespace ControlFinanciero.API.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly ExcelFinancieroService _excelService;
+        private readonly BitacoraActividadService _bitacoraService;
 
         public DocumentosFinancierosController(
             ApplicationDbContext context,
-            ExcelFinancieroService excelService)
+            ExcelFinancieroService excelService,
+            BitacoraActividadService bitacoraService)
         {
             _context = context;
             _excelService = excelService;
+            _bitacoraService = bitacoraService;
         }
 
+        private async Task RegistrarActividadDocumentoAsync(
+            ApplicationUser usuario,
+            int documentoId,
+            string nombreDocumento,
+            int areaId,
+            string tipoActividad)
+        {
+            var actividad = new BitacoraActividad
+            {
+                TipoActividad = tipoActividad,
+                Resultado = "Exitoso",
+                UsuarioId = usuario.Id,
+                NombreUsuario = usuario.UserName ?? string.Empty,
+                AreaId = areaId,
+                DocumentoFinancieroId = documentoId,
+                NombreDocumento = nombreDocumento,
+                DireccionIp = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                Detalle = tipoActividad == "ConsultaDocumentoFinanciero"
+                    ? $"Consulta del documento {nombreDocumento} (ID: {documentoId})."
+                    : $"Exportación del documento {nombreDocumento} (ID: {documentoId})."
+            };
+
+            if (tipoActividad == "ConsultaDocumentoFinanciero")
+            {
+                await _bitacoraService.RegistrarConsultaAsync(actividad);
+            }
+            else
+            {
+                await _bitacoraService.RegistrarAsync(actividad);
+            }
+        }
 
         [HttpGet]
         public async Task<IActionResult> ObtenerDocumentos()
@@ -119,6 +153,13 @@ namespace ControlFinanciero.API.Controllers
                 });
             }
 
+            await RegistrarActividadDocumentoAsync(
+                usuario,
+                documento.DocumentoFinancieroId,
+                documento.NombreArchivo,
+                documento.AreaId,
+                "ConsultaDocumentoFinanciero");
+
             return Ok(documento);
         }
 
@@ -146,9 +187,16 @@ namespace ControlFinanciero.API.Controllers
                     d => d.AreaId == usuario.AreaId);
             }
 
-            var existeDocumento = await consulta.AnyAsync();
+            var documento = await consulta
+                .Select(d => new
+                {
+                    d.DocumentoFinancieroId,
+                    d.NombreArchivo,
+                    d.AreaId
+                })
+                .FirstOrDefaultAsync();
 
-            if (!existeDocumento)
+            if (documento == null)
             {
                 return NotFound(new
                 {
@@ -175,6 +223,14 @@ namespace ControlFinanciero.API.Controllers
                     RowVersion = Convert.ToBase64String(r.RowVersion)
                 })
                 .ToListAsync();
+
+
+            await RegistrarActividadDocumentoAsync(
+                usuario,
+                documento.DocumentoFinancieroId,
+                documento.NombreArchivo,
+                documento.AreaId,
+                "ConsultaDocumentoFinanciero");
 
             return Ok(registros);
         }
@@ -207,7 +263,8 @@ namespace ControlFinanciero.API.Controllers
                 .Select(d => new
                 {
                     d.DocumentoFinancieroId,
-                    d.NombreArchivo
+                    d.NombreArchivo, 
+                    d.AreaId
                 })
                 .FirstOrDefaultAsync();
 
@@ -243,6 +300,13 @@ namespace ControlFinanciero.API.Controllers
 
             string nombreArchivo =
                 $"CFA_Documento_{documento.DocumentoFinancieroId}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx";
+
+            await RegistrarActividadDocumentoAsync(
+                usuario,
+                documento.DocumentoFinancieroId,
+                documento.NombreArchivo,
+                documento.AreaId,
+                "ExportacionExcel");
 
             return File(
                 contenido,
