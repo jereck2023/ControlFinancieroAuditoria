@@ -77,8 +77,8 @@ namespace ControlFinanciero.API.Controllers
                 })
                 .ToListAsync();
 
-            await _bitacoraService.RegistrarConsultaAsync(
-                new BitacoraActividad
+            await _bitacoraService.RegistrarAsync(
+               new BitacoraActividad
                 {
                     TipoActividad = "ConsultaListadoFinanciero",
                     Resultado = "Exitoso",
@@ -146,8 +146,8 @@ namespace ControlFinanciero.API.Controllers
                     mensaje = "Registro financiero no encontrado."
                 });
 
-            await _bitacoraService.RegistrarConsultaAsync(
-                new BitacoraActividad
+            await _bitacoraService.RegistrarAsync(
+               new BitacoraActividad
                 {
                     TipoActividad = "ConsultaDetalleFinanciero",
                     Resultado = "Exitoso",

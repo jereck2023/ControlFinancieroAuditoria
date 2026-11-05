@@ -53,14 +53,7 @@ namespace ControlFinanciero.API.Controllers
                     : $"Exportación del documento {nombreDocumento} (ID: {documentoId})."
             };
 
-            if (tipoActividad == "ConsultaDocumentoFinanciero")
-            {
-                await _bitacoraService.RegistrarConsultaAsync(actividad);
-            }
-            else
-            {
-                await _bitacoraService.RegistrarAsync(actividad);
-            }
+            await _bitacoraService.RegistrarAsync(actividad);
         }
 
         [HttpGet]

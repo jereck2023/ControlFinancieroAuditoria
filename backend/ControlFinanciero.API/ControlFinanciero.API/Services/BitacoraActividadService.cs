@@ -36,36 +36,5 @@ namespace ControlFinanciero.API.Services
             _context.BitacorasActividades.Add(actividad);
         }
 
-        public async Task<bool> RegistrarConsultaAsync(
-            BitacoraActividad actividad)
-        {
-            if (!actividad.UsuarioId.HasValue)
-            {
-                throw new ArgumentException(
-                    "La consulta debe tener un usuario identificado.");
-            }
-
-            var limite = DateTime.UtcNow.AddSeconds(-60);
-
-            var existe = await _context.BitacorasActividades
-                .AsNoTracking()
-                .AnyAsync(b =>
-                    b.UsuarioId == actividad.UsuarioId &&
-                    b.AreaId == actividad.AreaId &&
-                    b.TipoActividad == actividad.TipoActividad &&
-                    b.DocumentoFinancieroId ==
-                        actividad.DocumentoFinancieroId &&
-                    b.RegistroFinancieroId ==
-                        actividad.RegistroFinancieroId &&
-                    b.Detalle == actividad.Detalle &&
-                    b.FechaHora >= limite);
-
-            if (existe)
-                return false;
-
-            await RegistrarAsync(actividad);
-
-            return true;
-        }
     }
 }
