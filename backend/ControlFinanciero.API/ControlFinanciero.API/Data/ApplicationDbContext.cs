@@ -72,7 +72,6 @@ namespace ControlFinanciero.API.Data
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
-
             builder.Entity<RegistroFinanciero>(entity =>
             {
                 entity.HasKey(r => r.RegistroFinancieroId);
@@ -210,6 +209,121 @@ namespace ControlFinanciero.API.Data
 
                 entity.HasIndex(b => new { b.UsuarioId, b.FechaHora });
             });
+
+            builder.Entity<ReglaAnomalia>(entity =>
+            {
+                entity.HasKey(r => r.ReglaAnomaliaId);
+
+                entity.Property(r => r.Codigo)
+                      .HasMaxLength(50)
+                      .IsRequired();
+
+                entity.Property(r => r.Nombre)
+                      .HasMaxLength(150)
+                      .IsRequired();
+
+                entity.Property(r => r.Descripcion)
+                      .HasMaxLength(500)
+                      .IsRequired();
+
+                entity.Property(r => r.DiasSemana)
+                      .HasMaxLength(20);
+
+                entity.HasIndex(r => r.Codigo).IsUnique();
+
+                entity.HasData(
+                    new ReglaAnomalia
+                    {
+                        ReglaAnomaliaId = 1,
+                        Codigo = "MODIFICACION_REITERADA",
+                        Nombre = "Modificaciones reiteradas sobre un mismo campo",
+                        Descripcion = "Detecta cambios repetidos del mismo campo, registro y usuario dentro de una ventana de tiempo.",
+                        Activa = true,
+                        Umbral = 3,
+                        VentanaMinutos = 30
+                    },
+                    new ReglaAnomalia
+                    {
+                        ReglaAnomaliaId = 2,
+                        Codigo = "FUERA_DE_HORARIO",
+                        Nombre = "Actividad fuera del horario institucional",
+                        Descripcion = "Detecta inicios de sesion exitosos y cambios financieros fuera del horario de referencia.",
+                        Activa = true,
+                        HoraInicio = new TimeOnly(8, 0),
+                        HoraFin = new TimeOnly(18, 0),
+                        DiasSemana = "1,2,3,4,5"
+                    },
+                    new ReglaAnomalia
+                    {
+                        ReglaAnomaliaId = 3,
+                        Codigo = "LOGIN_FALLIDO_REITERADO",
+                        Nombre = "Contrasenas incorrectas reiteradas",
+                        Descripcion = "Detecta multiples contrasenas incorrectas para una misma cuenta dentro de una ventana de tiempo.",
+                        Activa = true,
+                        Umbral = 5,
+                        VentanaMinutos = 15
+                    });
+            });
+
+            builder.Entity<Alerta>(entity =>
+            {
+                entity.HasKey(a => a.AlertaId);
+
+                entity.Property(a => a.ClaveDeteccion)
+                      .HasMaxLength(64)
+                      .IsUnicode(false)
+                      .IsRequired();
+
+                entity.HasIndex(a => a.ClaveDeteccion).IsUnique();
+
+                entity.Property(a => a.Estado)
+                      .HasMaxLength(30)
+                      .HasDefaultValue("Pendiente")
+                      .IsRequired();
+
+                entity.Property(a => a.FechaHoraEvento)
+                      .HasColumnType("datetime2");
+
+                entity.Property(a => a.FechaHoraDeteccion)
+                      .HasColumnType("datetime2");
+
+                entity.Property(a => a.CampoModificado)
+                      .HasMaxLength(30);
+
+                entity.Property(a => a.Titulo)
+                      .HasMaxLength(180)
+                      .IsRequired();
+
+                entity.Property(a => a.Descripcion)
+                      .HasMaxLength(1000)
+                      .IsRequired();
+
+                entity.Property(a => a.EvidenciasJson)
+                      .IsRequired();
+
+                entity.HasOne(a => a.ReglaAnomalia)
+                      .WithMany(r => r.Alertas)
+                      .HasForeignKey(a => a.ReglaAnomaliaId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(a => a.Usuario)
+                      .WithMany()
+                      .HasForeignKey(a => a.UsuarioId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(a => a.Area)
+                      .WithMany()
+                      .HasForeignKey(a => a.AreaId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(a => a.RegistroFinanciero)
+                      .WithMany()
+                      .HasForeignKey(a => a.RegistroFinancieroId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasIndex(a => new { a.ReglaAnomaliaId, a.FechaHoraEvento });
+                entity.HasIndex(a => new { a.AreaId, a.FechaHoraEvento });
+            });
         }
 
         public DbSet<Area> Areas { get; set; }
@@ -221,5 +335,9 @@ namespace ControlFinanciero.API.Data
         public DbSet<DocumentoFinanciero> DocumentosFinancieros { get; set; }
 
         public DbSet<BitacoraActividad> BitacorasActividades { get; set; }
+
+        public DbSet<ReglaAnomalia> ReglasAnomalia { get; set; }
+
+        public DbSet<Alerta> Alertas { get; set; }
     }
 }

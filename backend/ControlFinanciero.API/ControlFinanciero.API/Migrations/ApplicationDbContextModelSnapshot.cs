@@ -22,6 +22,79 @@ namespace ControlFinanciero.API.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("ControlFinanciero.API.Models.Alerta", b =>
+                {
+                    b.Property<int>("AlertaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AlertaId"));
+
+                    b.Property<int?>("AreaId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CampoModificado")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("ClaveDeteccion")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .HasDefaultValue("Pendiente");
+
+                    b.Property<string>("EvidenciasJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("FechaHoraDeteccion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("FechaHoraEvento")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("RegistroFinancieroId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReglaAnomaliaId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasMaxLength(180)
+                        .HasColumnType("nvarchar(180)");
+
+                    b.Property<int?>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("AlertaId");
+
+                    b.HasIndex("ClaveDeteccion")
+                        .IsUnique();
+
+                    b.HasIndex("RegistroFinancieroId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.HasIndex("AreaId", "FechaHoraEvento");
+
+                    b.HasIndex("ReglaAnomaliaId", "FechaHoraEvento");
+
+                    b.ToTable("Alertas");
+                });
+
             modelBuilder.Entity("ControlFinanciero.API.Models.ApplicationUser", b =>
                 {
                     b.Property<int>("Id")
@@ -335,6 +408,92 @@ namespace ControlFinanciero.API.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ControlFinanciero.API.Models.ReglaAnomalia", b =>
+                {
+                    b.Property<int>("ReglaAnomaliaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReglaAnomaliaId"));
+
+                    b.Property<bool>("Activa")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("DiasSemana")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("FechaUltimaEvaluacionUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<TimeOnly?>("HoraFin")
+                        .HasColumnType("time");
+
+                    b.Property<TimeOnly?>("HoraInicio")
+                        .HasColumnType("time");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int?>("Umbral")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("VentanaMinutos")
+                        .HasColumnType("int");
+
+                    b.HasKey("ReglaAnomaliaId");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique();
+
+                    b.ToTable("ReglasAnomalia");
+
+                    b.HasData(
+                        new
+                        {
+                            ReglaAnomaliaId = 1,
+                            Activa = true,
+                            Codigo = "MODIFICACION_REITERADA",
+                            Descripcion = "Detecta cambios repetidos del mismo campo, registro y usuario dentro de una ventana de tiempo.",
+                            Nombre = "Modificaciones reiteradas sobre un mismo campo",
+                            Umbral = 3,
+                            VentanaMinutos = 30
+                        },
+                        new
+                        {
+                            ReglaAnomaliaId = 2,
+                            Activa = true,
+                            Codigo = "FUERA_DE_HORARIO",
+                            Descripcion = "Detecta inicios de sesion exitosos y cambios financieros fuera del horario de referencia.",
+                            DiasSemana = "1,2,3,4,5",
+                            HoraFin = new TimeOnly(18, 0, 0),
+                            HoraInicio = new TimeOnly(8, 0, 0),
+                            Nombre = "Actividad fuera del horario institucional"
+                        },
+                        new
+                        {
+                            ReglaAnomaliaId = 3,
+                            Activa = true,
+                            Codigo = "LOGIN_FALLIDO_REITERADO",
+                            Descripcion = "Detecta multiples contrasenas incorrectas para una misma cuenta dentro de una ventana de tiempo.",
+                            Nombre = "Contrasenas incorrectas reiteradas",
+                            Umbral = 5,
+                            VentanaMinutos = 15
+                        });
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<int>", b =>
                 {
                     b.Property<int>("Id")
@@ -466,6 +625,38 @@ namespace ControlFinanciero.API.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("ControlFinanciero.API.Models.Alerta", b =>
+                {
+                    b.HasOne("ControlFinanciero.API.Models.Area", "Area")
+                        .WithMany()
+                        .HasForeignKey("AreaId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ControlFinanciero.API.Models.RegistroFinanciero", "RegistroFinanciero")
+                        .WithMany()
+                        .HasForeignKey("RegistroFinancieroId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ControlFinanciero.API.Models.ReglaAnomalia", "ReglaAnomalia")
+                        .WithMany("Alertas")
+                        .HasForeignKey("ReglaAnomaliaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ControlFinanciero.API.Models.ApplicationUser", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Area");
+
+                    b.Navigation("RegistroFinanciero");
+
+                    b.Navigation("ReglaAnomalia");
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("ControlFinanciero.API.Models.ApplicationUser", b =>
@@ -632,6 +823,11 @@ namespace ControlFinanciero.API.Migrations
             modelBuilder.Entity("ControlFinanciero.API.Models.DocumentoFinanciero", b =>
                 {
                     b.Navigation("RegistrosFinancieros");
+                });
+
+            modelBuilder.Entity("ControlFinanciero.API.Models.ReglaAnomalia", b =>
+                {
+                    b.Navigation("Alertas");
                 });
 #pragma warning restore 612, 618
         }

@@ -145,6 +145,8 @@ builder.Services.AddOpenApi(options =>
 
 builder.Services.AddScoped<ExcelFinancieroService>();
 builder.Services.AddScoped<BitacoraActividadService>();
+builder.Services.AddScoped<DeteccionAnomaliasService>();
+builder.Services.AddHostedService<DeteccionAnomaliasWorker>();
 
 var app = builder.Build();
 
