@@ -59,11 +59,21 @@ namespace ControlFinanciero.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("FechaCierreUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("FechaHoraDeteccion")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime>("FechaHoraEvento")
                         .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("FechaInicioRevisionUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("JustificacionCierre")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<int?>("RegistroFinancieroId")
                         .HasColumnType("int");
@@ -71,12 +81,24 @@ namespace ControlFinanciero.API.Migrations
                     b.Property<int>("ReglaAnomaliaId")
                         .HasColumnType("int");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<string>("Titulo")
                         .IsRequired()
                         .HasMaxLength(180)
                         .HasColumnType("nvarchar(180)");
 
+                    b.Property<int?>("UsuarioCierreId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UsuarioRevisionId")
                         .HasColumnType("int");
 
                     b.HasKey("AlertaId");
@@ -86,7 +108,11 @@ namespace ControlFinanciero.API.Migrations
 
                     b.HasIndex("RegistroFinancieroId");
 
+                    b.HasIndex("UsuarioCierreId");
+
                     b.HasIndex("UsuarioId");
+
+                    b.HasIndex("UsuarioRevisionId");
 
                     b.HasIndex("AreaId", "FechaHoraEvento");
 
@@ -645,9 +671,19 @@ namespace ControlFinanciero.API.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("ControlFinanciero.API.Models.ApplicationUser", "UsuarioCierre")
+                        .WithMany()
+                        .HasForeignKey("UsuarioCierreId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("ControlFinanciero.API.Models.ApplicationUser", "Usuario")
                         .WithMany()
                         .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ControlFinanciero.API.Models.ApplicationUser", "UsuarioRevision")
+                        .WithMany()
+                        .HasForeignKey("UsuarioRevisionId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Area");
@@ -657,6 +693,10 @@ namespace ControlFinanciero.API.Migrations
                     b.Navigation("ReglaAnomalia");
 
                     b.Navigation("Usuario");
+
+                    b.Navigation("UsuarioCierre");
+
+                    b.Navigation("UsuarioRevision");
                 });
 
             modelBuilder.Entity("ControlFinanciero.API.Models.ApplicationUser", b =>

@@ -301,6 +301,28 @@ namespace ControlFinanciero.API.Data
                 entity.Property(a => a.EvidenciasJson)
                       .IsRequired();
 
+                entity.Property(a => a.FechaInicioRevisionUtc)
+                      .HasColumnType("datetime2");
+
+                entity.Property(a => a.FechaCierreUtc)
+                      .HasColumnType("datetime2");
+
+                entity.Property(a => a.JustificacionCierre)
+                      .HasMaxLength(1000);
+
+                entity.Property(a => a.RowVersion)
+                      .IsRowVersion();
+
+                entity.HasOne(a => a.UsuarioRevision)
+                      .WithMany()
+                      .HasForeignKey(a => a.UsuarioRevisionId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(a => a.UsuarioCierre)
+                      .WithMany()
+                      .HasForeignKey(a => a.UsuarioCierreId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
                 entity.HasOne(a => a.ReglaAnomalia)
                       .WithMany(r => r.Alertas)
                       .HasForeignKey(a => a.ReglaAnomaliaId)

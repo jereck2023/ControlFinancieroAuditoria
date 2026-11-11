@@ -27,5 +27,19 @@
         public string Descripcion { get; set; } = string.Empty;
 
         public string EvidenciasJson { get; set; } = "{}";
+
+        public int? UsuarioRevisionId { get; set; }
+        public ApplicationUser? UsuarioRevision { get; set; }
+
+        public DateTime? FechaInicioRevisionUtc { get; set; }
+
+        public int? UsuarioCierreId { get; set; }
+        public ApplicationUser? UsuarioCierre { get; set; }
+
+        public DateTime? FechaCierreUtc { get; set; }
+
+        public string? JustificacionCierre { get; set; }
+
+        public byte[] RowVersion { get; set; } = Array.Empty<byte>();
     }
 }
