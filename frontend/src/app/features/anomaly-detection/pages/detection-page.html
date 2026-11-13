@@ -1,0 +1,45 @@
+<app-page-header
+  eyebrow="CONTROL MEDIANTE REGLAS"
+  title="Detección de anomalías"
+  description="Solicite al servidor una evaluación mediante reglas predefinidas. No utiliza inteligencia artificial ni aprendizaje automático."
+/>
+<section
+  class="panel panel-body"
+  [attr.aria-busy]="busy()"
+  aria-labelledby="manual-detection-title"
+>
+  <h2 id="manual-detection-title">Evaluación manual</h2>
+  <p>
+    La ejecución tiene alcance global y aplica las reglas que estén activas en el servidor. Puede
+    crear alertas y actualizar el seguimiento de evaluación de las reglas.
+  </p>
+  <p class="text-secondary">
+    El servidor también dispone de evaluación automática periódica. Ambas vías comparten el servicio
+    de detección; el resultado de este botón corresponde únicamente a esta solicitud.
+  </p>
+  <button
+    type="button"
+    class="btn btn-primary"
+    [disabled]="busy() || !policy.can('detect-anomalies')"
+    (click)="detect()"
+  >
+    {{ busy() ? 'Evaluando reglas…' : 'Ejecutar detección' }}
+  </button>
+  @if (busy()) {
+    <p role="status" class="form-text mt-3 mb-0">
+      Espere la respuesta del servidor. La evaluación en curso no se reenvía al presionar
+      nuevamente.
+    </p>
+  }
+</section>
+<div class="mt-3"><app-feedback [message]="error()" /></div>
+@if (uncertain()) {
+  <p class="form-text">
+    No se pudo confirmar el resultado. La evaluación podría haberse completado en el servidor. No se
+    reintenta automáticamente; una nueva ejecución es una solicitud distinta.
+  </p>
+}
+@if (result(); as response) {
+  <app-detection-result [result]="response" />
+}
+<app-rule-reference />

@@ -1,0 +1,148 @@
+<section class="panel panel-body mb-4" aria-label="Filtros del reporte">
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <fieldset [disabled]="busy()">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label for="report-kind" class="form-label">Reporte</label
+          ><select id="report-kind" class="form-select" formControlName="kind">
+            <option value="resumen">Resumen Financiero</option>
+            <option value="detalle">Detalle Financiero</option>
+          </select>
+        </div>
+        <div class="col-sm-6 col-md-4">
+          <label for="report-from" class="form-label">Fecha desde</label
+          ><input
+            id="report-from"
+            type="date"
+            class="form-control"
+            formControlName="fechaDesde"
+            min="0001-01-01"
+            max="9999-12-31"
+            aria-describedby="report-from-error"
+          /><app-field-error [control]="form.controls.fechaDesde" errorId="report-from-error" />
+        </div>
+        <div class="col-sm-6 col-md-4">
+          <label for="report-until" class="form-label">Fecha hasta</label
+          ><input
+            id="report-until"
+            type="date"
+            class="form-control"
+            formControlName="fechaHasta"
+            min="0001-01-01"
+            max="9999-12-31"
+            aria-describedby="report-until-error"
+          /><app-field-error [control]="form.controls.fechaHasta" errorId="report-until-error" />
+        </div>
+        <div class="col-sm-6 col-lg-4">
+          <label for="report-operation" class="form-label">Tipo de operación</label
+          ><select id="report-operation" class="form-select" formControlName="tipoOperacion">
+            <option value="">Todos</option>
+            <option value="Ingreso">Ingreso</option>
+            <option value="Egreso">Egreso</option>
+          </select>
+        </div>
+        @if (auditor) {
+          <div class="col-sm-6 col-lg-4">
+            <label for="report-area" class="form-label">Área</label>
+            <select
+              id="report-area"
+              class="form-select"
+              formControlName="areaId"
+              aria-describedby="report-area-error"
+            >
+              <option [ngValue]="null">Todas las áreas autorizadas</option>
+              @for (area of areas(); track area.areaId) {
+                <option [ngValue]="area.areaId">
+                  {{ area.nombre }} · ID {{ area.areaId }}{{ area.activo ? '' : ' (inactiva)' }}
+                </option>
+              }
+            </select>
+            <app-field-error [control]="form.controls.areaId" errorId="report-area-error" />
+            @if (areasLoading()) {
+              <small role="status" class="form-text">Cargando áreas…</small>
+            }
+            @if (areasError()) {
+              <p id="report-area-error" class="field-error mt-2" role="alert">{{ areasError() }}</p>
+              <button
+                type="button"
+                class="btn btn-outline-secondary btn-sm mt-2"
+                (click)="loadAreas()"
+              >
+                Reintentar áreas
+              </button>
+            }
+          </div>
+        }
+        <div class="col-sm-6 col-lg-4">
+          <label for="report-document-mode" class="form-label">Documento de origen</label
+          ><select
+            id="report-document-mode"
+            class="form-select"
+            formControlName="documentMode"
+            (change)="documentModeChanged()"
+          >
+            <option value="all">Todos</option>
+            <option value="specific">Documento específico</option>
+            <option value="none">Solo sin documento de origen</option>
+          </select>
+        </div>
+        @if (form.controls.documentMode.value === 'specific') {
+          <div class="col-sm-6 col-lg-4">
+            <label for="report-document" class="form-label">ID de documento financiero</label
+            ><input
+              id="report-document"
+              type="number"
+              class="form-control"
+              formControlName="documentoFinancieroId"
+              min="1"
+              max="2147483647"
+              step="1"
+              aria-describedby="report-document-error"
+            /><app-field-error
+              [control]="form.controls.documentoFinancieroId"
+              errorId="report-document-error"
+            />
+            @if (form.touched && form.controls.documentoFinancieroId.value === null) {
+              <small class="field-error">Ingrese el ID del documento.</small>
+            }
+          </div>
+        }
+        @if (form.controls.kind.value === 'resumen') {
+          <div class="col-sm-6 col-lg-4">
+            <label for="report-group" class="form-label">Agrupación</label
+            ><select id="report-group" class="form-select" formControlName="agrupacion">
+              <option value="Ninguna">Sin agrupación</option>
+              <option value="Area">Por área</option>
+              <option value="Documento">Por documento financiero</option>
+            </select>
+          </div>
+        }
+        <div class="col-sm-6 col-lg-4">
+          <label for="report-size" class="form-label">Resultados por página</label
+          ><select id="report-size" class="form-select" formControlName="tamanoPagina">
+            <option [ngValue]="10">10</option>
+            <option [ngValue]="20">20</option>
+            <option [ngValue]="50">50</option>
+            <option [ngValue]="100">100</option>
+          </select>
+        </div>
+      </div>
+      @if (form.hasError('dateRange') && form.touched) {
+        <p role="alert" class="field-error mt-3">
+          La fecha inicial no puede superar la fecha final.
+        </p>
+      }
+      <p class="form-text mt-3">
+        El período incluye ambas fechas de operación, sin conversión de zona horaria.
+        {{
+          auditor
+            ? 'Sin filtro de área se consulta el alcance global autorizado.'
+            : 'El servidor limita el reporte a su área activa autorizada.'
+        }}
+      </p>
+      <button type="submit" class="btn btn-primary mt-2">
+        {{ busy() ? 'Procesando…' : 'Generar reporte' }}
+      </button>
+    </fieldset>
+  </form>
+</section>

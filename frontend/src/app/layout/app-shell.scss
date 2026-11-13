@@ -1,0 +1,169 @@
+@use '../../styles/tokens' as t;
+.shell {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 16rem minmax(0, 1fr);
+}
+.sidebar {
+  background: t.$navy;
+  color: white;
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  overflow-y: auto;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+}
+.brand-lockup {
+  padding: 0 0.5rem 2rem;
+  border-bottom: 1px solid #ffffff16;
+  font-size: 1.65rem;
+}
+.brand-subtitle {
+  font-size: 0.6rem;
+}
+.nav-label {
+  margin: 2rem 0.8rem 1rem;
+  font-size: 0.58rem;
+  letter-spacing: 0.15em;
+  color: #a5b6cc;
+}
+nav {
+  display: grid;
+  gap: 0.45rem;
+}
+nav a {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.5rem;
+  color: #d3ddea;
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+nav a span {
+  font-size: 1.2rem;
+  width: 1.2rem;
+  text-align: center;
+}
+nav a:hover {
+  background: #ffffff0a;
+  color: white;
+}
+nav a.active {
+  background: #25496d;
+  color: white;
+  box-shadow: inset 3px 0 #81b6ff;
+}
+.sidebar-bottom {
+  margin-top: auto;
+  padding: 1.5rem 0.8rem 0;
+  color: #bfccdc;
+  font-size: 0.72rem;
+}
+.sidebar-bottom p {
+  color: #98adc6;
+  font-size: 0.65rem;
+  margin: 0.6rem 0 0;
+}
+.institution-dot {
+  display: inline-block;
+  background: #77c4a7;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  margin-right: 0.4rem;
+}
+.workspace {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.topbar {
+  min-height: 5rem;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid t.$border;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.topbar-label {
+  font-size: 0.78rem;
+  color: t.$muted;
+}
+.session-menu {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-size: 0.8rem;
+}
+.session-menu small {
+  display: block;
+  font-size: 0.67rem;
+  color: t.$muted;
+  max-width: 16rem;
+}
+.main-content {
+  flex: 1;
+  padding: 2.5rem clamp(1rem, 3vw, 3rem);
+  max-width: 100rem;
+  width: 100%;
+  margin-inline: auto;
+}
+.workspace-footer {
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: t.$muted;
+  font-size: 0.7rem;
+}
+.menu-toggle {
+  display: none;
+}
+@media (max-width: 1100px) {
+  .topbar-label {
+    display: none;
+  }
+}
+@media (max-width: 800px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    position: fixed;
+    left: -17rem;
+    width: 16rem;
+    z-index: 101;
+    visibility: hidden;
+  }
+  .menu-open .sidebar {
+    left: 0;
+    visibility: visible;
+  }
+  .menu-toggle {
+    display: block;
+  }
+  .topbar {
+    padding: 1rem;
+    flex-wrap: wrap;
+  }
+  .menu-backdrop {
+    position: fixed;
+    inset: 0;
+    background: #12243a88;
+    border: none;
+    z-index: 100;
+  }
+  .session-menu {
+    flex-wrap: wrap;
+    justify-content: end;
+  }
+  .session-menu > div {
+    display: none;
+  }
+}

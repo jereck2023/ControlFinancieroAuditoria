@@ -1,0 +1,121 @@
+<div class="filter-bar">
+  <div class="filter-search">
+    <label for="record-search" class="form-label">Buscar descripción</label
+    ><input
+      #query
+      id="record-search"
+      class="form-control"
+      type="search"
+      (input)="filter(query.value, type(), area(), from(), until())"
+    />
+  </div>
+  <div>
+    <label for="record-type-filter" class="form-label">Operación</label
+    ><select
+      #operation
+      id="record-type-filter"
+      class="form-select"
+      (change)="filter(search(), operation.value, area(), from(), until())"
+    >
+      <option value="">Todas</option>
+      <option>Ingreso</option>
+      <option>Egreso</option>
+    </select>
+  </div>
+  <div>
+    <label for="record-area-filter" class="form-label">Área</label
+    ><select
+      #areaFilter
+      id="record-area-filter"
+      class="form-select"
+      (change)="filter(search(), type(), areaFilter.value, from(), until())"
+    >
+      <option value="">Todas las disponibles</option>
+      @for (item of areas(); track item[0]) {
+        <option [value]="item[0]">{{ item[1] }}</option>
+      }
+    </select>
+  </div>
+  <div>
+    <label for="record-from" class="form-label">Desde</label
+    ><input
+      #since
+      id="record-from"
+      type="date"
+      class="form-control"
+      (change)="filter(search(), type(), area(), since.value, until())"
+    />
+  </div>
+  <div>
+    <label for="record-until" class="form-label">Hasta</label
+    ><input
+      #to
+      id="record-until"
+      type="date"
+      class="form-control"
+      (change)="filter(search(), type(), area(), from(), to.value)"
+    />
+  </div>
+</div>
+@if (invalidDates()) {
+  <p class="feedback feedback-error m-3" role="alert">
+    La fecha inicial no puede superar la fecha final.
+  </p>
+}
+<div class="table-responsive">
+  <table class="table">
+    <caption class="visually-hidden">
+      Registros financieros dentro de su alcance autorizado
+    </caption>
+    <thead>
+      <tr>
+        <th scope="col">ID</th>
+        <th scope="col">Fecha</th>
+        <th scope="col">Operación</th>
+        <th scope="col">Descripción</th>
+        <th scope="col">Área</th>
+        <th scope="col" class="text-end">Monto</th>
+        <th scope="col">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (record of visible(); track record.registroFinancieroId) {
+        <tr>
+          <td>{{ record.registroFinancieroId }}</td>
+          <td class="text-nowrap">{{ record.fechaOperacion | date: 'dd/MM/yyyy' : 'UTC' }}</td>
+          <td>
+            <span class="status" [class.status-active]="record.tipoOperacion === 'Ingreso'">{{
+              record.tipoOperacion
+            }}</span>
+          </td>
+          <th scope="row" class="fw-normal">{{ record.descripcion }}</th>
+          <td>{{ record.nombreArea }}</td>
+          <td class="text-end text-nowrap">{{ record.monto | financialAmount }}</td>
+          <td>
+            <div class="table-actions">
+              <a
+                class="btn btn-outline-secondary btn-sm"
+                [routerLink]="['/registros', record.registroFinancieroId]"
+                [attr.aria-label]="'Ver registro ' + record.registroFinancieroId"
+                >Ver</a
+              >
+              @if (policy.can('write-financial')) {
+                <a
+                  class="btn btn-outline-secondary btn-sm"
+                  [routerLink]="['/registros', record.registroFinancieroId, 'editar']"
+                  [attr.aria-label]="'Editar registro ' + record.registroFinancieroId"
+                  >Editar</a
+                >
+              }
+            </div>
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="7" class="empty-state">No se encontraron registros con estos criterios.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+<app-pagination [total]="filtered().length" [page]="page()" (pageChange)="page.set($event)" />

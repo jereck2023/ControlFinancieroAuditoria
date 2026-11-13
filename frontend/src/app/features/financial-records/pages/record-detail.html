@@ -1,0 +1,44 @@
+<app-page-header
+  eyebrow="INFORMACIÓN FINANCIERA"
+  title="Detalle del registro"
+  description="Información estructurada de la operación registrada."
+  ><a routerLink="/registros" class="btn btn-outline-secondary"
+    >Volver a registros</a
+  ></app-page-header
+>
+<app-feedback [message]="error()" />
+@if (loading()) {
+  <p role="status">Cargando registro…</p>
+} @else if (record(); as item) {
+  <section class="panel panel-body">
+    <div class="d-flex justify-content-between flex-wrap gap-3 mb-4">
+      <div>
+        <p class="eyebrow">REGISTRO {{ item.registroFinancieroId }}</p>
+        <h2>{{ item.descripcion }}</h2>
+      </div>
+      @if (policy.can('write-financial')) {
+        <a
+          class="btn btn-primary align-self-start"
+          [routerLink]="['/registros', item.registroFinancieroId, 'editar']"
+          >Editar registro</a
+        >
+      }
+    </div>
+    <dl class="row mb-0">
+      <dt class="col-sm-4">Tipo de operación</dt>
+      <dd class="col-sm-8">{{ item.tipoOperacion }}</dd>
+      <dt class="col-sm-4">Fecha de operación</dt>
+      <dd class="col-sm-8">{{ item.fechaOperacion | date: 'dd/MM/yyyy' : 'UTC' }}</dd>
+      <dt class="col-sm-4">Monto</dt>
+      <dd class="col-sm-8 fs-4 fw-semibold">{{ item.monto | financialAmount }}</dd>
+      <dt class="col-sm-4">Área</dt>
+      <dd class="col-sm-8">{{ item.nombreArea }}</dd>
+      <dt class="col-sm-4">Registrado por</dt>
+      <dd class="col-sm-8">{{ item.nombreUsuario }}</dd>
+    </dl>
+  </section>
+} @else {
+  <button type="button" class="btn btn-outline-secondary" (click)="load()">
+    Volver a consultar
+  </button>
+}

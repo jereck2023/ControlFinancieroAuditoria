@@ -1,0 +1,51 @@
+<app-page-header
+  eyebrow="DOCUMENTOS FINANCIEROS"
+  [title]="document()?.nombreArchivo ?? 'Detalle del documento'"
+  description="Operaciones estructuradas del documento importado."
+  ><a routerLink="/documentos" class="btn btn-outline-secondary">Volver a documentos</a>
+  @if (document()) {
+    <button type="button" class="btn btn-primary" [disabled]="downloading()" (click)="export()">
+      {{ downloading() ? 'Preparando…' : 'Exportar documento completo' }}
+    </button>
+  }
+</app-page-header>
+<app-feedback [message]="error()" /><app-feedback [message]="downloadError()" />
+@if (loading()) {
+  <p role="status">Consultando documento y registros…</p>
+} @else if (document(); as item) {
+  <section class="panel panel-body mb-4">
+    <dl class="row mb-0">
+      <dt class="col-sm-3">ID del documento</dt>
+      <dd class="col-sm-3">{{ item.documentoFinancieroId }}</dd>
+      <dt class="col-sm-3">Área</dt>
+      <dd class="col-sm-3">{{ item.nombreArea }}</dd>
+      <dt class="col-sm-3">Importado por</dt>
+      <dd class="col-sm-3">{{ item.nombreUsuario }}</dd>
+      <dt class="col-sm-3">Importación (UTC)</dt>
+      <dd class="col-sm-3">{{ item.fechaImportacion | date: 'dd/MM/yyyy HH:mm' : 'UTC' }}</dd>
+      <dt class="col-sm-3">Total de registros</dt>
+      <dd class="col-sm-3">{{ item.totalRegistros }}</dd>
+    </dl>
+    <details class="mt-3">
+      <summary>Huella digital del archivo importado (SHA-256)</summary>
+      <code class="text-break d-block mt-2">{{ item.hashArchivo }}</code>
+    </details>
+  </section>
+  <section class="panel">
+    <div class="panel-heading">
+      <h2>Registros del documento</h2>
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="load()">
+        Actualizar
+      </button>
+    </div>
+    <app-records-table [records]="records()" />
+  </section>
+  <p class="form-text mt-3">
+    Los filtros afectan solo la tabla. La exportación incluye el documento completo con sus
+    registros actuales.
+  </p>
+} @else {
+  <button type="button" class="btn btn-outline-secondary" (click)="load()">
+    Volver a consultar
+  </button>
+}

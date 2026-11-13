@@ -1,0 +1,51 @@
+<app-page-header
+  [title]="id ? 'Editar área' : 'Nueva área'"
+  description="Identifique el área institucional con un nombre claro y único."
+  ><a routerLink="/areas" class="btn btn-outline-secondary">Volver al listado</a></app-page-header
+>
+<app-feedback [message]="error()" />
+@if (loading()) {
+  <p role="status">Cargando área…</p>
+} @else if (!ready()) {
+  <button type="button" class="btn btn-outline-secondary" (click)="load()">
+    Volver a consultar
+  </button>
+} @else {
+  <div class="form-layout">
+    <section class="panel panel-body">
+      <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="busy()">
+        <fieldset [disabled]="busy()">
+          <label for="area-name" class="form-label"
+            >Nombre del área <span aria-hidden="true">*</span></label
+          ><input
+            id="area-name"
+            class="form-control"
+            formControlName="nombre"
+            maxlength="100"
+            aria-required="true"
+            aria-describedby="area-name-help area-name-error"
+            [attr.aria-invalid]="form.controls.nombre.invalid && form.controls.nombre.touched"
+          />
+          <small id="area-name-help" class="form-text">Máximo 100 caracteres.</small
+          ><app-field-error [control]="form.controls.nombre" errorId="area-name-error" />
+          <div class="form-footer">
+            <button type="button" class="btn btn-outline-secondary" routerLink="/areas">
+              Cancelar</button
+            ><button type="submit" class="btn btn-primary">
+              {{ busy() ? 'Guardando…' : 'Guardar área' }}
+            </button>
+          </div>
+        </fieldset>
+      </form>
+    </section>
+    <aside class="panel aside-note">
+      <h2>Organización institucional</h2>
+      <p>
+        Los nombres de las áreas deben ser únicos. El servidor verificará posibles coincidencias.
+      </p>
+      <p class="mb-0">
+        Las áreas nuevas se registran activas. Su estado se administra desde el listado.
+      </p>
+    </aside>
+  </div>
+}

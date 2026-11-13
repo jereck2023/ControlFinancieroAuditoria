@@ -1,0 +1,90 @@
+<app-page-header
+  eyebrow="CONSULTA INSTITUCIONAL"
+  title="Reportes financieros"
+  description="Genere un resumen o consulte el detalle de las operaciones dentro de su alcance autorizado."
+/>
+<app-report-filters [busy]="state.loading() || downloading()" (apply)="generate($event)" />
+<app-feedback [message]="state.error()" /><app-feedback [message]="downloadError()" />
+@if (state.loading()) {
+  <section class="panel panel-body" role="status">Generando reporte…</section>
+} @else if (state.result(); as result) {
+  <section class="panel panel-body mb-4" aria-label="Filtros aplicados">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+      <div>
+        <p class="eyebrow">REPORTE GENERADO</p>
+        <h2>{{ result.kind === 'resumen' ? 'Resumen Financiero' : 'Detalle Financiero' }}</h2>
+        <p class="mb-1">
+          {{ result.data.filtrosAplicados.fechaDesde | date: 'dd/MM/yyyy' : 'UTC' }} al
+          {{ result.data.filtrosAplicados.fechaHasta | date: 'dd/MM/yyyy' : 'UTC' }} ·
+          {{ result.data.filtrosAplicados.tipoOperacion ?? 'Todas las operaciones' }}
+        </p>
+        <p class="mb-0 text-secondary">
+          Área: {{ result.data.filtrosAplicados.areaId ?? 'Alcance autorizado' }} · Documento:
+          {{
+            result.data.filtrosAplicados.documentoFinancieroId ??
+              (result.data.filtrosAplicados.soloSinDocumento ? 'Sin documento de origen' : 'Todos')
+          }}
+        </p>
+      </div>
+      <button
+        type="button"
+        class="btn btn-outline-primary"
+        [disabled]="downloading()"
+        (click)="export()"
+      >
+        {{ downloading() ? 'Preparando archivo…' : 'Exportar reporte a Excel' }}
+      </button>
+    </div>
+    <p class="form-text mt-3 mb-0">
+      La exportación incluye todos los resultados de los filtros del reporte generado, sin limitarse
+      a esta página. Los cambios del formulario se aplican al generar nuevamente. El detalle se
+      exporta hasta un máximo de 10000 operaciones.
+    </p>
+    <p class="form-text mt-2 mb-0">
+      El Excel generado por la API puede redondear importes de más de 15 cifras significativas. La
+      consulta en pantalla conserva los decimales recibidos de la API.
+    </p>
+  </section>
+  @if (result.kind === 'resumen') {
+    <app-report-totals [totals]="result.data" />
+    @if (result.data.cantidadIngresos + result.data.cantidadEgresos === 0) {
+      <p class="panel empty-state">No se encontraron operaciones para los filtros aplicados.</p>
+    }
+    @if (result.data.agrupacion !== 'Ninguna') {
+      <section class="panel">
+        <div class="panel-heading">
+          <h2>
+            {{
+              result.data.agrupacion === 'Area'
+                ? 'Agrupación por área'
+                : 'Agrupación por documento financiero'
+            }}
+          </h2>
+        </div>
+        <app-report-groups [groups]="result.data.grupos" /><app-pagination
+          [total]="result.data.totalGrupos"
+          [page]="result.data.pagina"
+          [size]="result.data.tamanoPagina"
+          (pageChange)="page($event)"
+        />
+      </section>
+    }
+  } @else {
+    <section class="panel">
+      <div class="panel-heading">
+        <h2>Operaciones del período</h2>
+        <span class="small text-secondary">Paginación del servidor</span>
+      </div>
+      <app-report-movements [rows]="result.data.registros" /><app-pagination
+        [total]="result.data.totalRegistros"
+        [page]="result.data.pagina"
+        [size]="result.data.tamanoPagina"
+        (pageChange)="page($event)"
+      />
+    </section>
+  }
+} @else if (!state.error()) {
+  <section class="panel empty-state">
+    Seleccione el período y los filtros, y pulse Generar reporte para consultar la API.
+  </section>
+}

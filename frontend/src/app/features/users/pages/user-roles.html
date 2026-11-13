@@ -1,0 +1,66 @@
+<app-page-header
+  title="Asignar roles"
+  description="Defina los perfiles autorizados para la cuenta institucional."
+  ><a routerLink="/usuarios" class="btn btn-outline-secondary"
+    >Volver al listado</a
+  ></app-page-header
+>
+@if (!confirming()) {
+  <app-feedback [message]="error()" />
+}
+@if (loading()) {
+  <p role="status">Cargando usuario…</p>
+} @else if (user(); as account) {
+  <div class="form-layout">
+    <section class="panel panel-body">
+      <h2>{{ account.nombreCompleto }}</h2>
+      <p class="text-secondary mb-4">
+        {{ account.userName }} · {{ account.nombreArea ?? 'Sin área asignada' }}
+      </p>
+      <app-role-picker
+        [selected]="selected()"
+        [disabled]="busy()"
+        (selectedChange)="selected.set($event)"
+      />
+      @if (account.areaId === null) {
+        <p class="form-text mt-3">
+          Para asignar perfiles adicionales,
+          <a [routerLink]="['/usuarios', account.id, 'editar']">asigne primero un área al usuario</a
+          >.
+        </p>
+      }
+      <div class="form-footer">
+        <a routerLink="/usuarios" class="btn btn-outline-secondary">Cancelar</a
+        ><button type="button" class="btn btn-primary" [disabled]="busy()" (click)="confirm()">
+          Guardar roles
+        </button>
+      </div>
+    </section>
+    <aside class="panel aside-note">
+      <h2>Permisos por operación</h2>
+      <p>
+        Administrador gestiona usuarios y áreas. No obtiene acceso financiero o de auditoría por
+        defecto.
+      </p>
+      <p>Los permisos de las combinaciones dependen de las reglas específicas de cada módulo.</p>
+      <p class="mb-0">
+        Los cambios de roles invalidan las sesiones de la cuenta. No se puede retirar el rol al
+        último administrador activo.
+      </p>
+    </aside>
+  </div>
+} @else {
+  <button type="button" class="btn btn-outline-secondary" (click)="load()">
+    Volver a consultar
+  </button>
+}
+@if (confirming()) {
+  <app-confirmation-dialog
+    title="Confirmar asignación de roles"
+    description="Se actualizarán los permisos de la cuenta. Si hay cambios, sus sesiones actuales dejarán de ser válidas."
+    [busy]="busy()"
+    [error]="error()"
+    (dismiss)="confirming.set(false)"
+    (confirm)="save()"
+  />
+}

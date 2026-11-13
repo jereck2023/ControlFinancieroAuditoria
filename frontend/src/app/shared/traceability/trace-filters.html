@@ -1,0 +1,127 @@
+<section class="panel panel-body mb-4" aria-label="Filtros de consulta">
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <fieldset [disabled]="busy()">
+      <div class="row g-3">
+        <div class="col-sm-6 col-xl-3">
+          <label for="trace-user" class="form-label">ID de usuario</label
+          ><input
+            id="trace-user"
+            type="number"
+            class="form-control"
+            formControlName="usuarioId"
+            min="1"
+            max="2147483647"
+            step="1"
+            aria-describedby="trace-user-error"
+          /><app-field-error [control]="form.controls.usuarioId" errorId="trace-user-error" />
+        </div>
+        <div class="col-sm-6 col-xl-3">
+          <label for="trace-document" class="form-label">ID de documento</label
+          ><input
+            id="trace-document"
+            type="number"
+            class="form-control"
+            formControlName="documentoFinancieroId"
+            min="1"
+            max="2147483647"
+            step="1"
+            aria-describedby="trace-document-error"
+          /><app-field-error
+            [control]="form.controls.documentoFinancieroId"
+            errorId="trace-document-error"
+          />
+        </div>
+        @if (mode() === 'history') {
+          <div class="col-sm-6 col-xl-3">
+            <label for="trace-record" class="form-label">ID de registro financiero</label
+            ><input
+              id="trace-record"
+              type="number"
+              class="form-control"
+              formControlName="registroFinancieroId"
+              min="1"
+              max="2147483647"
+              step="1"
+              aria-describedby="trace-record-error"
+            /><app-field-error
+              [control]="form.controls.registroFinancieroId"
+              errorId="trace-record-error"
+            />
+          </div>
+          <div class="col-sm-6 col-xl-3">
+            <label for="trace-action" class="form-label">Acción</label
+            ><select id="trace-action" class="form-select" formControlName="tipoAccion">
+              <option value="">Todas</option>
+              <option value="Creacion">Creación</option>
+              <option value="Modificacion">Modificación</option>
+            </select>
+          </div>
+        } @else {
+          <div class="col-sm-6 col-xl-6">
+            <label for="trace-activity" class="form-label">Tipo de actividad exacto</label
+            ><input
+              id="trace-activity"
+              class="form-control"
+              formControlName="tipoActividad"
+              placeholder="Ej.: LoginExitoso"
+              aria-describedby="trace-activity-help"
+            /><small id="trace-activity-help" class="form-text"
+              >Utilice el tipo tal como aparece en la bitácora.</small
+            >
+          </div>
+        }
+        <div class="col-sm-6 col-xl-4">
+          <label for="trace-from" class="form-label">Desde (UTC)</label
+          ><input
+            id="trace-from"
+            type="datetime-local"
+            class="form-control"
+            formControlName="fechaDesde"
+            step="1"
+            min="0001-01-01T00:00:00"
+            max="9999-12-31T23:59:59"
+            aria-describedby="trace-from-error"
+          /><app-field-error [control]="form.controls.fechaDesde" errorId="trace-from-error" />
+        </div>
+        <div class="col-sm-6 col-xl-4">
+          <label for="trace-until" class="form-label">Hasta (UTC)</label
+          ><input
+            id="trace-until"
+            type="datetime-local"
+            class="form-control"
+            formControlName="fechaHasta"
+            step="1"
+            min="0001-01-01T00:00:00"
+            max="9999-12-31T23:59:59"
+            aria-describedby="trace-until-error"
+          /><app-field-error [control]="form.controls.fechaHasta" errorId="trace-until-error" />
+        </div>
+        <div class="col-sm-6 col-xl-4">
+          <label for="trace-size" class="form-label">Resultados por página</label
+          ><select id="trace-size" class="form-select" formControlName="tamanoPagina">
+            <option [ngValue]="10">10</option>
+            <option [ngValue]="20">20</option>
+            <option [ngValue]="50">50</option>
+            <option [ngValue]="100">100</option>
+          </select>
+        </div>
+      </div>
+      @if (form.hasError('dateRange') && form.touched) {
+        <p role="alert" class="field-error mt-3">
+          La fecha inicial no puede superar la fecha final.
+        </p>
+      }
+      <p class="form-text mt-3">
+        Los identificadores son opcionales. El servidor limita la consulta a su alcance autorizado.
+        El filtro Hasta incluye todo el segundo seleccionado.
+      </p>
+      <div class="d-flex gap-2 mt-3">
+        <button type="submit" class="btn btn-primary">
+          {{ busy() ? 'Consultando…' : 'Consultar' }}</button
+        ><button type="button" class="btn btn-outline-secondary" (click)="clear()">
+          Limpiar filtros
+        </button>
+      </div>
+    </fieldset>
+  </form>
+</section>

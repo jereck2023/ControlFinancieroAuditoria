@@ -1,0 +1,57 @@
+<div class="d-flex justify-content-between flex-wrap gap-3 mb-3">
+  <h3 class="h6 mb-0">Valores registrados en el evento</h3>
+  <label class="form-check-label"
+    ><input
+      class="form-check-input me-2"
+      type="checkbox"
+      [checked]="onlyChanges()"
+      (change)="onlyChanges.set(!onlyChanges())"
+    />Solo campos modificados</label
+  >
+</div>
+@if (fields().length) {
+  <div class="table-responsive">
+    <table class="table">
+      <caption class="visually-hidden">
+        Comparación de valores anteriores y nuevos del historial
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Campo</th>
+          <th scope="col">Anterior</th>
+          <th scope="col">Nuevo</th>
+          <th scope="col">Cambio</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (field of visible(); track field.campo) {
+          <tr>
+            <th scope="row">{{ field.etiqueta }}</th>
+            <td class="change-value">{{ field.anterior }}</td>
+            <td class="change-value">{{ field.nuevo }}</td>
+            <td>
+              <span class="status" [class.status-warning]="field.modificado">{{
+                field.modificado ? 'Modificado' : 'Sin cambios'
+              }}</span>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="4" class="empty-state">
+              No hay diferencias entre los campos comparables.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+} @else {
+  <p class="text-secondary">
+    El evento no contiene un conjunto de campos anteriores y nuevos comparable. Puede consultar el
+    contenido recibido a continuación.
+  </p>
+}
+<details class="mt-3">
+  <summary>Ver contenido completo del evento</summary>
+  <pre class="mt-2 mb-0">{{ raw() }}</pre>
+</details>

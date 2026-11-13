@@ -1,0 +1,102 @@
+<app-page-header
+  eyebrow="INFORMACIÓN FINANCIERA"
+  [title]="id === null ? 'Nuevo registro financiero' : 'Editar registro financiero'"
+  description="Registre la operación mediante el formulario institucional."
+  ><a routerLink="/registros" class="btn btn-outline-secondary"
+    >Volver a registros</a
+  ></app-page-header
+>
+<app-feedback [message]="error()" />
+@if (loading()) {
+  <p role="status">Consultando versión actual…</p>
+} @else if (conflict()) {
+  <section class="panel panel-body">
+    <h2>El registro cambió mientras lo editaba</h2>
+    <p>
+      No se guardaron sus cambios. Consulte la versión actual antes de intentar guardar nuevamente.
+    </p>
+    <p class="form-text">
+      Al cargarla se reemplazarán los valores del formulario por los del servidor.
+    </p>
+    <button class="btn btn-primary" type="button" (click)="load()">Cargar versión actual</button>
+  </section>
+} @else if (ready()) {
+  <div class="form-layout">
+    <section class="panel panel-body">
+      <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="busy()">
+        <fieldset [disabled]="busy()">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="operation" class="form-label">Tipo de operación *</label
+              ><select id="operation" class="form-select" formControlName="tipoOperacion">
+                <option>Ingreso</option>
+                <option>Egreso</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="operation-date" class="form-label">Fecha de operación *</label
+              ><input
+                id="operation-date"
+                type="date"
+                class="form-control"
+                formControlName="fechaOperacion"
+                min="0001-01-01"
+                max="9999-12-31"
+                aria-describedby="operation-date-error"
+              /><app-field-error
+                [control]="form.controls.fechaOperacion"
+                errorId="operation-date-error"
+              />
+            </div>
+            <div class="col-12">
+              <label for="description" class="form-label">Descripción *</label
+              ><textarea
+                id="description"
+                class="form-control"
+                formControlName="descripcion"
+                rows="4"
+                maxlength="250"
+                aria-describedby="description-help description-error"
+              ></textarea
+              ><small id="description-help" class="form-text">Hasta 250 caracteres.</small
+              ><app-field-error [control]="form.controls.descripcion" errorId="description-error" />
+            </div>
+            <div class="col-md-6">
+              <label for="amount" class="form-label">Monto *</label
+              ><input
+                id="amount"
+                class="form-control"
+                inputmode="decimal"
+                formControlName="monto"
+                autocomplete="off"
+                aria-describedby="amount-help amount-error"
+              /><small id="amount-help" class="form-text"
+                >Mayor que cero, hasta dos decimales. Sin separadores de miles.</small
+              ><app-field-error [control]="form.controls.monto" errorId="amount-error" />
+            </div>
+          </div>
+          <div class="form-footer">
+            <button type="button" class="btn btn-outline-secondary" routerLink="/registros">
+              Cancelar</button
+            ><button type="submit" class="btn btn-primary">
+              {{ busy() ? 'Guardando…' : 'Guardar registro' }}
+            </button>
+          </div>
+        </fieldset>
+      </form>
+    </section>
+    <aside class="panel aside-note">
+      <h2>Registro y trazabilidad</h2>
+      <p>{{ scope() }}</p>
+      <p>El monto se ingresa positivo tanto para ingresos como para egresos.</p>
+      <p class="mb-0">
+        El sistema registra los cambios y comprueba que la versión no haya sido modificada por otra
+        persona.
+      </p>
+    </aside>
+  </div>
+} @else if (id !== null) {
+  <button type="button" class="btn btn-outline-secondary" (click)="load()">
+    Volver a consultar
+  </button>
+}

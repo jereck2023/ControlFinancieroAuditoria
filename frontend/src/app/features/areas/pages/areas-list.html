@@ -1,0 +1,148 @@
+<app-page-header
+  title="Áreas institucionales"
+  description="Organización y estado de las áreas registradas en la entidad."
+>
+  @if (policy.can('manage-areas')) {
+    <a class="btn btn-primary" routerLink="/areas/nueva"
+      ><span aria-hidden="true">＋</span> Nueva área</a
+    >
+  }
+</app-page-header>
+<app-feedback [message]="error()" /><app-feedback [message]="success()" kind="success" />
+@if (!loading() && !error()) {
+  <div class="row g-3 mb-4" aria-label="Resumen de áreas">
+    <div class="col-sm-4">
+      <div class="panel panel-body">
+        <span class="text-secondary">Total de áreas</span
+        ><strong class="d-block fs-3 mt-1">{{ areas().length }}</strong>
+      </div>
+    </div>
+    <div class="col-sm-4">
+      <div class="panel panel-body">
+        <span class="text-secondary">Áreas activas</span
+        ><strong class="d-block fs-3 mt-1">{{ activeCount() }}</strong>
+      </div>
+    </div>
+    <div class="col-sm-4">
+      <div class="panel panel-body">
+        <span class="text-secondary">Áreas inactivas</span
+        ><strong class="d-block fs-3 mt-1">{{ areas().length - activeCount() }}</strong>
+      </div>
+    </div>
+  </div>
+}
+<section class="panel" [attr.aria-busy]="loading()">
+  <div class="panel-heading">
+    <h2>Directorio de áreas</h2>
+    <button
+      type="button"
+      class="btn btn-outline-secondary btn-sm"
+      [disabled]="loading()"
+      (click)="load()"
+    >
+      Actualizar
+    </button>
+  </div>
+  <div class="filter-bar">
+    <div class="filter-search">
+      <label for="area-search" class="form-label">Buscar por nombre</label
+      ><input
+        #query
+        id="area-search"
+        class="form-control"
+        type="search"
+        placeholder="Nombre del área"
+        (input)="filter(query.value, state())"
+      />
+    </div>
+    <div class="filter-select">
+      <label for="area-state" class="form-label">Estado</label
+      ><select
+        #status
+        id="area-state"
+        class="form-select"
+        (change)="filter(search(), status.value)"
+      >
+        <option value="all">Todos</option>
+        <option value="active">Activas</option>
+        <option value="inactive">Inactivas</option>
+      </select>
+    </div>
+  </div>
+  @if (loading()) {
+    <p class="empty-state" role="status">Cargando áreas…</p>
+  } @else if (!error()) {
+    <div class="table-responsive">
+      <table class="table">
+        <caption class="visually-hidden">
+          Áreas institucionales autorizadas para consulta
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Nombre del área</th>
+            <th scope="col">Estado</th>
+            @if (policy.can('manage-areas')) {
+              <th scope="col">Acciones</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (area of visible(); track area.areaId) {
+            <tr>
+              <td>{{ area.areaId }}</td>
+              <th scope="row">{{ area.nombre }}</th>
+              <td>
+                <span class="status" [class.status-active]="area.activo">{{
+                  area.activo ? 'Activa' : 'Inactiva'
+                }}</span>
+              </td>
+              @if (policy.can('manage-areas')) {
+                <td>
+                  <div class="table-actions">
+                    <a
+                      [routerLink]="['/areas', area.areaId, 'editar']"
+                      class="btn btn-outline-secondary btn-sm"
+                      [attr.aria-label]="'Editar área ' + area.nombre"
+                      >Editar</a
+                    ><button
+                      class="btn btn-outline-secondary btn-sm"
+                      type="button"
+                      (click)="select(area)"
+                      [attr.aria-label]="(area.activo ? 'Desactivar ' : 'Activar ') + area.nombre"
+                    >
+                      {{ area.activo ? 'Desactivar' : 'Activar' }}
+                    </button>
+                  </div>
+                </td>
+              }
+            </tr>
+          } @empty {
+            <tr>
+              <td [attr.colspan]="policy.can('manage-areas') ? 4 : 3" class="empty-state">
+                No se encontraron áreas con estos criterios.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <app-pagination [total]="filtered().length" [page]="page()" (pageChange)="page.set($event)" />
+  }
+</section>
+@if (selected(); as area) {
+  <app-confirmation-dialog
+    [title]="area.activo ? 'Desactivar área' : 'Activar área'"
+    [description]="
+      area.activo
+        ? 'Al desactivar ' +
+          area.nombre +
+          ', los permisos que requieren un área activa dejarán de estar disponibles para sus usuarios.'
+        : 'Se activará el área ' + area.nombre + '.'
+    "
+    [busy]="saving()"
+    [error]="actionError()"
+    (dismiss)="selected.set(null)"
+    (confirm)="changeState()"
+  />
+}

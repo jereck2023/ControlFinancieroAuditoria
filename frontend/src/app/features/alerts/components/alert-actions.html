@@ -1,0 +1,78 @@
+<section class="mt-4" aria-label="Acciones de la alerta">
+  @if (alert().estado === 'Pendiente') {
+    <h3 class="h6">Iniciar seguimiento</h3>
+    <p class="text-secondary">
+      Al confirmar, el servidor registrará su usuario y la fecha de inicio de revisión.
+    </p>
+    <button
+      type="button"
+      class="btn btn-primary"
+      [disabled]="busy() || disabled()"
+      (click)="prepareStart()"
+    >
+      Iniciar revisión
+    </button>
+  } @else if (alert().estado === 'En revision') {
+    <h3 class="h6">Registrar cierre</h3>
+    <form [formGroup]="form" (ngSubmit)="prepareClose()">
+      <fieldset [disabled]="busy() || disabled()">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label" for="alert-close-state">Resultado de la revisión</label
+            ><select id="alert-close-state" class="form-select" formControlName="estado">
+              <option value="Resuelta">Resuelta</option>
+              <option value="Descartada">Descartada</option>
+            </select>
+          </div>
+          <div class="col-md-8">
+            <label class="form-label" for="alert-justification">Justificación del cierre</label
+            ><textarea
+              id="alert-justification"
+              class="form-control"
+              rows="4"
+              maxlength="1000"
+              formControlName="justificacion"
+              aria-describedby="alert-justification-error alert-justification-help"
+            ></textarea
+            ><app-field-error
+              [control]="form.controls.justificacion"
+              errorId="alert-justification-error"
+            /><small id="alert-justification-help" class="form-text"
+              >De 10 a 1000 caracteres después de quitar espacios al inicio y al final.</small
+            >
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Confirmar cierre…</button>
+      </fieldset>
+    </form>
+  } @else {
+    <p class="form-text mb-0">
+      La alerta está cerrada. No hay una transición de reapertura disponible.
+    </p>
+  }
+</section>
+@if (pending(); as draft) {
+  <app-confirmation-dialog
+    [title]="
+      draft.kind === 'start'
+        ? 'Iniciar revisión de alerta ' + alert().alertaId
+        : 'Cerrar alerta ' + alert().alertaId
+    "
+    [description]="
+      draft.kind === 'start'
+        ? 'La alerta pasará de Pendiente a En revisión y quedará registrado quién inició la revisión.'
+        : 'La alerta quedará ' +
+          label(draft.request.estado) +
+          '. Se registrarán su usuario, la fecha y la justificación indicada.'
+    "
+    [busy]="busy()"
+    [error]="error()"
+    (confirm)="confirm()"
+    (dismiss)="pending.set(null)"
+  >
+    @if (draft.kind === 'close') {
+      <p class="small text-secondary">Justificación que se enviará</p>
+      <p class="justification-preview">{{ draft.request.justificacion }}</p>
+    }
+  </app-confirmation-dialog>
+}

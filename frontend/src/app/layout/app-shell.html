@@ -1,0 +1,107 @@
+<div class="shell" [class.menu-open]="menuOpen()">
+  <aside class="sidebar" aria-label="Menú principal">
+    <a routerLink="/inicio" class="brand-lockup" (click)="menuOpen.set(false)"
+      ><img src="assets/branding/cfa-mark.svg" alt="" width="42" height="42" /><span
+        >CFA<span class="brand-subtitle">Control financiero y auditoría</span></span
+      ></a
+    >
+    <p class="nav-label">ESPACIO INSTITUCIONAL</p>
+    <nav (click)="menuOpen.set(false)">
+      @if (policy.can('read-financial')) {
+        <a routerLink="/documentos" routerLinkActive="active" ariaCurrentWhenActive="page"
+          ><span aria-hidden="true">▧</span> Documentos financieros</a
+        >
+        <a routerLink="/registros" routerLinkActive="active" ariaCurrentWhenActive="page"
+          ><span aria-hidden="true">≡</span> Registros financieros</a
+        >
+      }
+      @if (policy.can('write-financial')) {
+        <a routerLink="/importar-excel" routerLinkActive="active" ariaCurrentWhenActive="page"
+          ><span aria-hidden="true">↑</span> Importar Excel</a
+        >
+      }
+      @if (policy.can('read-traceability')) {
+        <a routerLink="/historial-auditoria" routerLinkActive="active" ariaCurrentWhenActive="page"
+          ><span aria-hidden="true">⌕</span> Historial de auditoría</a
+        >
+        <a routerLink="/bitacora-actividades" routerLinkActive="active" ariaCurrentWhenActive="page"
+          ><span aria-hidden="true">☷</span> Bitácora de actividades</a
+        >
+      }
+      @if (policy.can('read-reports')) {
+        <a routerLink="/reportes-financieros" routerLinkActive="active" ariaCurrentWhenActive="page"
+          ><span aria-hidden="true">▥</span> Reportes financieros</a
+        >
+      }
+      @if (policy.can('detect-anomalies')) {
+        <a routerLink="/deteccion-anomalias" routerLinkActive="active" ariaCurrentWhenActive="page"
+          ><span aria-hidden="true">◈</span> Detección de anomalías</a
+        >
+      }
+      @if (policy.can('read-alerts')) {
+        <a routerLink="/alertas" routerLinkActive="active" ariaCurrentWhenActive="page"
+          ><span aria-hidden="true">⚑</span> Gestión de alertas</a
+        >
+      }
+      <a routerLink="/inicio" routerLinkActive="active" ariaCurrentWhenActive="page"
+        ><span aria-hidden="true">⌂</span> Inicio</a
+      >
+      @if (policy.can('read-areas')) {
+        <a routerLink="/areas" routerLinkActive="active" ariaCurrentWhenActive="page"
+          ><span aria-hidden="true">▤</span> Áreas institucionales</a
+        >
+      }
+      @if (policy.can('manage-users')) {
+        <a routerLink="/usuarios" routerLinkActive="active" ariaCurrentWhenActive="page"
+          ><span aria-hidden="true">♙</span> Usuarios y roles</a
+        >
+      }
+    </nav>
+    <div class="sidebar-bottom">
+      <span class="institution-dot" aria-hidden="true"></span> Plataforma de uso interno
+      <p>Acceso según perfil autorizado</p>
+    </div>
+  </aside>
+  @if (menuOpen()) {
+    <button
+      class="menu-backdrop"
+      type="button"
+      aria-label="Cerrar menú"
+      (click)="menuOpen.set(false)"
+    ></button>
+  }
+  <div class="workspace">
+    <header class="topbar">
+      <div class="d-flex align-items-center gap-3">
+        <button
+          class="btn btn-outline-secondary menu-toggle"
+          type="button"
+          aria-label="Alternar menú principal"
+          [attr.aria-expanded]="menuOpen()"
+          (click)="menuOpen.set(!menuOpen())"
+        >
+          ☰</button
+        ><span class="topbar-label">Sistema de Control Financiero y Auditoría</span>
+      </div>
+      <div class="session-menu">
+        <div>
+          <strong>{{ session.identity()?.username }}</strong
+          ><small>
+            @for (role of session.identity()?.roles; track role) {
+              <span>{{ roleLabels[role] }} </span>
+            }
+          </small>
+        </div>
+        <a routerLink="/cambiar-password" class="btn btn-outline-secondary btn-sm">Contraseña</a
+        ><button class="btn btn-outline-secondary btn-sm" type="button" (click)="session.end()">
+          Cerrar sesión
+        </button>
+      </div>
+    </header>
+    <main id="main-content" class="main-content" tabindex="-1"><router-outlet /></main>
+    <footer class="workspace-footer">
+      <span>CFA · Gestión institucional</span
+      ><span>Sesión hasta {{ session.identity()?.expiresAt | date: 'HH:mm' }}</span>
+    </footer>
+  </div>
+</div>

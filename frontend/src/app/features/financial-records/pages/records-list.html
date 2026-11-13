@@ -1,0 +1,46 @@
+<app-page-header
+  eyebrow="INFORMACIÓN FINANCIERA"
+  title="Registros financieros"
+  description="Consulte las operaciones dentro de su alcance autorizado."
+>
+  @if (policy.can('write-financial')) {
+    <a routerLink="/registros/nuevo" class="btn btn-primary">Nuevo registro</a
+    ><a routerLink="/importar-excel" class="btn btn-outline-primary">Importar Excel</a>
+  }
+  <button
+    type="button"
+    class="btn btn-outline-secondary"
+    [disabled]="downloading()"
+    (click)="export()"
+  >
+    {{ downloading() ? 'Preparando archivo…' : 'Exportar todo el alcance' }}
+  </button> </app-page-header
+><app-feedback [message]="error()" /><app-feedback [message]="downloadError()" />
+<section class="panel" [attr.aria-busy]="loading()">
+  <div class="panel-heading">
+    <h2>Operaciones registradas</h2>
+    <button
+      class="btn btn-outline-secondary btn-sm"
+      type="button"
+      [disabled]="loading()"
+      (click)="load()"
+    >
+      Actualizar
+    </button>
+  </div>
+  @if (loading()) {
+    <p class="empty-state" role="status">Cargando registros…</p>
+  } @else if (!error()) {
+    <app-records-table [records]="records()" />
+  }
+</section>
+<p class="form-text mt-3">
+  Los filtros afectan la consulta en pantalla. La exportación incluye todos los registros que la API
+  le permite consultar.
+</p>
+@if (policy.can('write-financial')) {
+  <p class="form-text">
+    La creación y modificación requieren un área propia activa. El servidor comprueba el área de
+    cada registro al guardar.
+  </p>
+}

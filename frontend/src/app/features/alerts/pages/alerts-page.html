@@ -1,0 +1,150 @@
+<app-page-header
+  eyebrow="SEGUIMIENTO DE ANOMALÍAS"
+  title="Gestión de alertas"
+  description="Consulte evidencias y registre la revisión y el cierre de las alertas dentro de su alcance autorizado."
+/>
+<app-alert-filters [busy]="list.loading() || mutating()" (apply)="filter($event)" /><app-feedback
+  [message]="list.error()"
+/>
+<section class="panel" [attr.aria-busy]="list.loading()">
+  <div class="panel-heading">
+    <h2>Alertas registradas</h2>
+    <button
+      type="button"
+      class="btn btn-outline-secondary btn-sm"
+      [disabled]="list.loading() || mutating()"
+      (click)="refresh()"
+    >
+      Actualizar consulta
+    </button>
+  </div>
+  @if (list.loading()) {
+    <p role="status" class="empty-state">Consultando alertas…</p>
+  } @else if (list.result(); as result) {
+    <div class="table-responsive">
+      <table class="table">
+        <caption class="visually-hidden">
+          Alertas paginadas por el servidor
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">ID / estado</th>
+            <th scope="col">Anomalía</th>
+            <th scope="col">Evento / detección (UTC)</th>
+            <th scope="col">Regla</th>
+            <th scope="col">Usuario / área</th>
+            <th scope="col">Detalle</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of result.alertas; track row.alertaId) {
+            <tr>
+              <td>
+                {{ row.alertaId
+                }}<span class="d-block mt-2"><app-alert-status [state]="row.estado" /></span>
+              </td>
+              <td>{{ row.titulo }}</td>
+              <td class="text-nowrap">
+                {{ row.fechaHoraEvento | utcTimestamp
+                }}<span class="d-block small text-secondary"
+                  >Detectada: {{ row.fechaHoraDeteccion | utcTimestamp }}</span
+                >
+              </td>
+              <td>
+                {{ row.nombreRegla
+                }}<small class="d-block text-secondary"
+                  >ID {{ row.reglaAnomaliaId }} · {{ row.codigoRegla }}</small
+                >
+              </td>
+              <td>
+                {{ row.nombreUsuario ?? 'Sin usuario identificado' }}
+                @if (row.usuarioId !== null) {
+                  <small class="d-block text-secondary">ID {{ row.usuarioId }}</small>
+                }
+                <span class="d-block">{{ row.nombreArea ?? 'Sin área asociada' }}</span>
+              </td>
+              <td>
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary btn-sm"
+                  [disabled]="mutating()"
+                  [attr.aria-label]="'Ver alerta ' + row.alertaId"
+                  [attr.aria-expanded]="selected() === row.alertaId"
+                  aria-controls="alert-detail"
+                  (click)="show(row.alertaId)"
+                >
+                  Ver detalle
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="empty-state">
+                No se encontraron alertas con los filtros y permisos actuales.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <app-pagination
+      [total]="result.totalRegistros"
+      [page]="result.pagina"
+      [size]="result.tamanoPagina"
+      (pageChange)="page($event)"
+    />
+  }
+</section>
+<p class="form-text mt-3">
+  El listado y sus filtros se aplican en el servidor. La ejecución de detecciones se realiza en su
+  sección independiente.
+</p>
+@if (selected() !== null) {
+  <section
+    id="alert-detail"
+    class="panel mt-4"
+    aria-label="Detalle de alerta"
+    [attr.aria-busy]="detailLoading() || mutating()"
+  >
+    <div class="panel-heading">
+      <h2>Detalle de alerta {{ selected() }}</h2>
+      <div class="d-flex gap-2">
+        <button
+          type="button"
+          class="btn btn-outline-secondary btn-sm"
+          [disabled]="mutating() || detailLoading()"
+          (click)="reloadDetail()"
+        >
+          Actualizar detalle</button
+        ><button
+          type="button"
+          class="btn btn-outline-secondary btn-sm"
+          [disabled]="mutating()"
+          (click)="closeDetail()"
+        >
+          Cerrar detalle
+        </button>
+      </div>
+    </div>
+    <div class="px-4 pt-3">
+      <app-feedback [message]="notice()" kind="success" /><app-feedback
+        [message]="actionError()"
+      /><app-feedback [message]="conflict()" kind="info" /><app-feedback
+        [message]="detailError()"
+      />
+    </div>
+    @if (detailLoading()) {
+      <p role="status" class="px-4 pt-3">Actualizando datos de la alerta…</p>
+    }
+    @if (detail(); as item) {
+      <app-alert-detail
+        [alert]="item"
+        [busy]="mutating()"
+        [disabled]="stale() || detailLoading()"
+        [error]="actionError()"
+        (action)="act($event)"
+        (prepare)="clearActionFeedback()"
+      />
+    }
+  </section>
+}

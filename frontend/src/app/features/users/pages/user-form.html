@@ -1,0 +1,132 @@
+<app-page-header
+  [title]="id ? 'Editar usuario' : 'Nuevo usuario'"
+  description="Datos de identificación y asignación institucional de la cuenta."
+  ><a routerLink="/usuarios" class="btn btn-outline-secondary"
+    >Volver al listado</a
+  ></app-page-header
+>
+<app-feedback [message]="error()" />
+@if (loading()) {
+  <p role="status">Cargando información…</p>
+} @else if (!ready()) {
+  <button class="btn btn-outline-secondary" type="button" (click)="load()">
+    Volver a consultar
+  </button>
+} @else {
+  <div class="form-layout">
+    <section class="panel panel-body">
+      <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="busy()">
+        <fieldset [disabled]="busy()">
+          <h2 class="mb-4">Identificación del usuario</h2>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="user-name">Nombre de usuario *</label
+              ><input
+                id="user-name"
+                class="form-control"
+                formControlName="nombreUsuario"
+                autocomplete="off"
+                aria-required="true"
+                aria-describedby="user-name-error"
+              /><app-field-error
+                [control]="form.controls.nombreUsuario"
+                errorId="user-name-error"
+              />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="full-name">Nombre completo *</label
+              ><input
+                id="full-name"
+                class="form-control"
+                formControlName="nombreCompleto"
+                maxlength="150"
+                autocomplete="name"
+                aria-required="true"
+                aria-describedby="full-name-error"
+              /><app-field-error
+                [control]="form.controls.nombreCompleto"
+                errorId="full-name-error"
+              />
+            </div>
+            <div class="col-12">
+              <label for="assigned-area" class="form-label">Área institucional</label
+              ><select
+                id="assigned-area"
+                class="form-select"
+                formControlName="areaId"
+                aria-describedby="assigned-area-help assigned-area-error"
+              >
+                <option [ngValue]="null">Sin área asignada</option>
+                @for (area of areas(); track area.areaId) {
+                  <option [ngValue]="area.areaId" [disabled]="!area.activo">
+                    {{ area.nombre }}{{ area.activo ? '' : ' (inactiva)' }}
+                  </option>
+                }</select
+              ><small id="assigned-area-help" class="form-text"
+                >Solo un usuario con el rol exclusivo Administrador puede quedar sin área.</small
+              >
+              @if (submitted() && form.hasError('areaRequired')) {
+                <small id="assigned-area-error" class="field-error"
+                  >Debe asignar un área institucional.</small
+                >
+              }
+            </div>
+            @if (!id) {
+              <div class="col-12">
+                <label for="initial-password" class="form-label">Contraseña inicial *</label
+                ><input
+                  id="initial-password"
+                  type="password"
+                  class="form-control"
+                  formControlName="passwordInicial"
+                  autocomplete="new-password"
+                  aria-required="true"
+                  aria-describedby="initial-password-help initial-password-error"
+                /><small id="initial-password-help" class="form-text"
+                  >Mínimo 12 caracteres con mayúscula, minúscula, número y símbolo. Se exigirá su
+                  cambio al ingresar.</small
+                ><app-field-error
+                  [control]="form.controls.passwordInicial"
+                  errorId="initial-password-error"
+                />
+              </div>
+              <div class="col-12 mt-4">
+                <app-role-picker
+                  [selected]="roles()"
+                  [disabled]="busy()"
+                  (selectedChange)="setRoles($event)"
+                />
+                @if (submitted() && roles().length === 0) {
+                  <p class="field-error" role="alert">Seleccione al menos un rol.</p>
+                }
+              </div>
+            }
+          </div>
+          <div class="form-footer">
+            <button class="btn btn-outline-secondary" type="button" routerLink="/usuarios">
+              Cancelar</button
+            ><button class="btn btn-primary" type="submit">
+              {{ busy() ? 'Guardando…' : 'Guardar usuario' }}
+            </button>
+          </div>
+        </fieldset>
+      </form>
+    </section>
+    <aside class="panel aside-note">
+      <h2>Asignación y seguridad</h2>
+      <p>
+        Seleccione un área activa. Los permisos se evalúan por operación, sin una jerarquía general
+        entre roles.
+      </p>
+      @if (id) {
+        <p>
+          Los roles y el restablecimiento de contraseña se administran por separado desde el
+          listado.
+        </p>
+      }
+      <p class="mb-0">
+        Cambiar el nombre de usuario o el área invalida las sesiones existentes de esa cuenta.
+      </p>
+    </aside>
+  </div>
+}

@@ -1,0 +1,173 @@
+<app-page-header
+  title="Usuarios y roles"
+  description="Administre cuentas institucionales y sus perfiles de acceso."
+  ><a routerLink="/usuarios/nuevo" class="btn btn-primary"
+    ><span aria-hidden="true">＋</span> Nuevo usuario</a
+  ></app-page-header
+>
+<app-feedback [message]="error()" /><app-feedback [message]="success()" kind="success" />
+<section class="panel" [attr.aria-busy]="loading()">
+  <div class="panel-heading">
+    <h2>Directorio de usuarios</h2>
+    <button
+      class="btn btn-outline-secondary btn-sm"
+      type="button"
+      [disabled]="loading()"
+      (click)="load()"
+    >
+      Actualizar
+    </button>
+  </div>
+  <div class="filter-bar">
+    <div class="filter-search">
+      <label for="user-search" class="form-label">Buscar usuario</label
+      ><input
+        #query
+        id="user-search"
+        class="form-control"
+        type="search"
+        placeholder="Usuario o nombre completo"
+        (input)="filter(query.value, state(), area())"
+      />
+    </div>
+    <div class="filter-select">
+      <label for="user-area" class="form-label">Área</label
+      ><select
+        #areaFilter
+        id="user-area"
+        class="form-select"
+        (change)="filter(search(), state(), areaFilter.value)"
+      >
+        <option value="all">Todas las áreas</option>
+        <option value="null">Sin área</option>
+        @for (areaItem of areas(); track areaItem.areaId) {
+          <option [value]="areaItem.areaId">{{ areaItem.nombre }}</option>
+        }
+      </select>
+    </div>
+    <div class="filter-select">
+      <label for="user-state" class="form-label">Estado</label
+      ><select
+        #status
+        id="user-state"
+        class="form-select"
+        (change)="filter(search(), status.value, area())"
+      >
+        <option value="all">Todos</option>
+        <option value="active">Activos</option>
+        <option value="inactive">Inactivos</option>
+      </select>
+    </div>
+  </div>
+  @if (loading()) {
+    <p class="empty-state" role="status">Cargando usuarios…</p>
+  } @else if (!error()) {
+    <div class="table-responsive">
+      <table class="table">
+        <caption class="visually-hidden">
+          Usuarios, roles y estado de acceso
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Usuario</th>
+            <th scope="col">Área</th>
+            <th scope="col">Roles</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Contraseña</th>
+            <th scope="col">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of visible(); track user.id) {
+            <tr>
+              <th scope="row">
+                <span class="d-block">{{ user.userName }}</span
+                ><span class="fw-normal text-secondary small">{{ user.nombreCompleto }}</span>
+              </th>
+              <td>{{ user.nombreArea ?? 'Sin área' }}</td>
+              <td>
+                @for (role of user.roles; track role) {
+                  <span class="role-tag">{{ labels[role] }}</span>
+                }
+              </td>
+              <td>
+                <span class="status" [class.status-active]="user.activo">{{
+                  user.activo ? 'Activo' : 'Inactivo'
+                }}</span>
+              </td>
+              <td>
+                <span class="status" [class.status-warning]="user.debeCambiarPassword">{{
+                  user.debeCambiarPassword ? 'Cambio requerido' : 'Actualizada'
+                }}</span>
+              </td>
+              <td>
+                <div class="table-actions">
+                  <a
+                    [routerLink]="['/usuarios', user.id, 'editar']"
+                    class="btn btn-outline-secondary btn-sm"
+                    [attr.aria-label]="'Editar ' + user.userName"
+                    >Editar</a
+                  ><a
+                    [routerLink]="['/usuarios', user.id, 'roles']"
+                    class="btn btn-outline-secondary btn-sm"
+                    [attr.aria-label]="'Asignar roles a ' + user.userName"
+                    >Roles</a
+                  >
+                  @if (user.activo) {
+                    <a
+                      [routerLink]="['/usuarios', user.id, 'password']"
+                      class="btn btn-outline-secondary btn-sm"
+                      [attr.aria-label]="'Restablecer contraseña de ' + user.userName"
+                      >Contraseña</a
+                    >
+                  }
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm"
+                    [disabled]="isLastAdmin(user)"
+                    [title]="
+                      isLastAdmin(user)
+                        ? 'No se puede desactivar al último administrador activo'
+                        : ''
+                    "
+                    (click)="select(user)"
+                    [attr.aria-label]="(user.activo ? 'Desactivar ' : 'Activar ') + user.userName"
+                  >
+                    {{ user.activo ? 'Desactivar' : 'Activar' }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="empty-state">
+                No se encontraron usuarios con estos criterios.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <app-pagination [total]="filtered().length" [page]="page()" (pageChange)="page.set($event)" />
+  }
+</section>
+<p class="form-text mt-3">
+  Las cuentas se activan o desactivan; no se eliminan. El servidor protege al último administrador
+  activo.
+</p>
+@if (selected(); as user) {
+  <app-confirmation-dialog
+    [title]="user.activo ? 'Desactivar usuario' : 'Activar usuario'"
+    [description]="
+      user.activo
+        ? 'Se desactivará la cuenta ' + user.userName + ' y sus sesiones dejarán de ser válidas.'
+        : 'Se activará la cuenta ' +
+          user.userName +
+          '. El servidor comprobará su asignación de área.'
+    "
+    [busy]="saving()"
+    [error]="actionError()"
+    (dismiss)="selected.set(null)"
+    (confirm)="changeState()"
+  />
+}

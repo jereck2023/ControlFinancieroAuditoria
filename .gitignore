@@ -29,3 +29,14 @@ appsettings.*.local.json
 *.p12
 *.key
 secrets.json
+
+# Respaldos y referencias locales: no son fuentes ni recursos del producto
+/respaldos/
+/referencias-ui/
+/CFA-backend-*.zip
+
+# Archivos de base de datos y respaldos generados
+*.bak
+*.bacpac
+*.mdf
+*.ldf

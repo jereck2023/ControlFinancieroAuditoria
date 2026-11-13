@@ -1,0 +1,49 @@
+<section class="panel mt-4" aria-labelledby="rule-reference-title">
+  <div class="panel-heading">
+    <h2 id="rule-reference-title">Qué situaciones analiza el servicio</h2>
+  </div>
+  <div class="panel-body">
+    <p class="text-secondary">
+      Descripción de la lógica implementada. La API no expone un catálogo de reglas ni sus
+      parámetros vigentes; esta información no indica cuáles están activas en este momento.
+    </p>
+    <div class="row g-4">
+      <article class="col-lg-4">
+        <p class="eyebrow">MODIFICACIONES REITERADAS</p>
+        <h3 class="h6">Cambios repetidos de un mismo campo</h3>
+        <p>
+          Analiza modificaciones del mismo usuario, registro financiero y campo dentro de una
+          ventana de tiempo. Compara tipo de operación, descripción, fecha de operación y monto en
+          los valores anteriores y nuevos del historial.
+        </p>
+        <p class="small text-secondary mb-0">
+          Parámetros del servidor: umbral de cambios y ventana en minutos.
+        </p>
+      </article>
+      <article class="col-lg-4">
+        <p class="eyebrow">FUERA DE HORARIO</p>
+        <h3 class="h6">Accesos exitosos y modificaciones financieras</h3>
+        <p>
+          Evalúa inicios de sesión exitosos de usuarios identificados y modificaciones de registros
+          financieros fuera de los días y horas de referencia, en la zona horaria de Perú. La hora
+          de inicio está incluida y la hora de fin queda excluida.
+        </p>
+        <p class="small text-secondary mb-0">
+          Parámetros del servidor: días de la semana, hora de inicio y hora de fin.
+        </p>
+      </article>
+      <article class="col-lg-4">
+        <p class="eyebrow">CONTRASEÑAS INCORRECTAS REITERADAS</p>
+        <h3 class="h6">Intentos fallidos de una misma cuenta</h3>
+        <p>
+          Cuenta eventos LoginFallido con resultado Fallido, usuario identificado y detalle
+          «Contraseña incorrecta.», agrupados por cuenta dentro de una ventana de tiempo. Los
+          accesos de usuarios inexistentes o a cuentas ya bloqueadas no forman parte de este conteo.
+        </p>
+        <p class="small text-secondary mb-0">
+          Parámetros del servidor: umbral de contraseñas incorrectas y ventana en minutos.
+        </p>
+      </article>
+    </div>
+  </div>
+</section>

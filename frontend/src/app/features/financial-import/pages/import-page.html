@@ -1,0 +1,169 @@
+<app-page-header
+  eyebrow="INFORMACIÓN FINANCIERA"
+  title="Importar documento financiero"
+  description="Valide un archivo Excel y revise sus registros antes de confirmar la importación."
+  ><a routerLink="/documentos" class="btn btn-outline-secondary"
+    >Volver a documentos</a
+  ></app-page-header
+>
+<app-feedback [message]="error()" />
+@if (completed(); as result) {
+  <section class="panel panel-body mb-4" role="status">
+    <h2>Importación completada</h2>
+    <p>{{ result.nombreArchivo }} · {{ result.totalImportados }} registros importados.</p>
+    <a class="btn btn-primary" [routerLink]="['/documentos', result.documentoFinancieroId]"
+      >Consultar documento importado</a
+    >
+  </section>
+}
+<div class="form-layout">
+  <section class="panel panel-body" [attr.aria-busy]="busy()">
+    <p class="eyebrow">1 · SELECCIONAR Y VALIDAR</p>
+    <label for="excel-file" class="form-label">Archivo Excel (.xlsx)</label
+    ><input
+      #fileInput
+      id="excel-file"
+      type="file"
+      class="form-control"
+      accept=".xlsx"
+      [disabled]="busy()"
+      (change)="selectFile($event)"
+      aria-describedby="excel-help"
+    />
+    <p id="excel-help" class="form-text">
+      Hasta 2 MB y 500 registros. Solo se importará en su propia área activa.
+    </p>
+    @if (file(); as selected) {
+      <p class="text-break">
+        Seleccionado: <strong>{{ selected.name }}</strong>
+      </p>
+    }
+    <button
+      type="button"
+      class="btn btn-primary mt-2"
+      [disabled]="!file() || busy()"
+      (click)="validate()"
+    >
+      {{ busy() ? 'Procesando…' : 'Validar archivo' }}
+    </button>
+  </section>
+  <aside class="panel aside-note">
+    <h2>Estructura requerida</h2>
+    <p>Hoja <strong>RegistrosFinancieros</strong>, con estas cuatro columnas en orden:</p>
+    <ol>
+      <li>TipoOperacion: Ingreso o Egreso.</li>
+      <li>Descripcion: entre 1 y 250 caracteres.</li>
+      <li>FechaOperacion: fecha Excel o texto dd/MM/yyyy.</li>
+      <li>Monto: celda numérica positiva, máximo dos decimales.</li>
+    </ol>
+    <p class="mb-0">
+      No se permiten fórmulas ni columnas adicionales. La validación final se realiza en el
+      servidor.
+    </p>
+  </aside>
+</div>
+@if (preview(); as result) {
+  <section class="panel mt-4">
+    <div class="panel-heading">
+      <div>
+        <p class="eyebrow">2 · REVISAR VISTA PREVIA</p>
+        <h2>
+          {{ result.totalFilas }} filas revisadas · {{ result.registros.length }} registros válidos
+          · {{ result.errores.length }} observaciones
+        </h2>
+      </div>
+    </div>
+    @if (result.errores.length) {
+      <div class="panel-body">
+        <app-feedback
+          message="El archivo contiene errores. Corríjalo y vuelva a seleccionarlo; no se han importado registros."
+        />
+        <div class="table-responsive">
+          <table class="table">
+            <caption class="visually-hidden">
+              Errores de validación del archivo
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Fila</th>
+                <th scope="col">Observación</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (error of visibleErrors(); track $index) {
+                <tr>
+                  <td>{{ error.numeroFila === 0 ? 'Archivo' : error.numeroFila }}</td>
+                  <td>{{ error.mensaje }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <app-pagination
+          [total]="result.errores.length"
+          [page]="errorPage()"
+          (pageChange)="errorPage.set($event)"
+        />
+      </div>
+    }
+    <div class="table-responsive">
+      <table class="table">
+        <caption class="visually-hidden">
+          Registros válidos de la vista previa, solo lectura
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Fila</th>
+            <th scope="col">Operación</th>
+            <th scope="col">Descripción</th>
+            <th scope="col">Fecha</th>
+            <th scope="col" class="text-end">Monto</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of visible(); track row.numeroFila) {
+            <tr>
+              <td>{{ row.numeroFila }}</td>
+              <td>{{ row.tipoOperacion }}</td>
+              <td>{{ row.descripcion }}</td>
+              <td>{{ row.fechaOperacion | date: 'dd/MM/yyyy' : 'UTC' }}</td>
+              <td class="text-end">{{ row.monto | financialAmount }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="empty-state">No hay registros válidos para mostrar.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <app-pagination
+      [total]="result.registros.length"
+      [page]="page()"
+      (pageChange)="page.set($event)"
+    />
+    <div class="panel-body border-top">
+      <p class="form-text">
+        Al confirmar se enviará el mismo archivo validado. Si cambia el archivo debe validarlo
+        nuevamente.
+      </p>
+      <button
+        type="button"
+        class="btn btn-primary"
+        [disabled]="!canConfirm() || busy()"
+        (click)="confirming.set(true)"
+      >
+        Confirmar importación
+      </button>
+    </div>
+  </section>
+}
+@if (confirming()) {
+  <app-confirmation-dialog
+    title="Confirmar importación"
+    description="Se incorporarán los registros válidos del documento a su área. Esta operación se registra para auditoría."
+    [busy]="busy()"
+    (dismiss)="confirming.set(false)"
+    (confirm)="confirm()"
+  />
+}

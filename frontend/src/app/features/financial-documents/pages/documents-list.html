@@ -1,0 +1,117 @@
+<app-page-header
+  eyebrow="INFORMACIÓN FINANCIERA"
+  title="Documentos financieros"
+  description="Archivos importados y sus operaciones registradas en el sistema."
+>
+  @if (policy.can('write-financial')) {
+    <a class="btn btn-primary" routerLink="/importar-excel">Importar Excel</a>
+  }
+  <a class="btn btn-outline-secondary" routerLink="/registros">Ver registros</a> </app-page-header
+><app-feedback [message]="error()" /><app-feedback [message]="downloadError()" />
+<section class="panel" [attr.aria-busy]="loading()">
+  <div class="panel-heading">
+    <h2>Documentos disponibles</h2>
+    <button
+      class="btn btn-outline-secondary btn-sm"
+      type="button"
+      [disabled]="loading()"
+      (click)="load()"
+    >
+      Actualizar
+    </button>
+  </div>
+  <div class="filter-bar">
+    <div class="filter-search">
+      <label for="document-search" class="form-label">Buscar archivo</label
+      ><input
+        #query
+        id="document-search"
+        class="form-control"
+        type="search"
+        (input)="filter(query.value, area())"
+        placeholder="Nombre del documento"
+      />
+    </div>
+    <div>
+      <label for="document-area" class="form-label">Área</label
+      ><select
+        #areaFilter
+        id="document-area"
+        class="form-select"
+        (change)="filter(search(), areaFilter.value)"
+      >
+        <option value="">Todas las disponibles</option>
+        @for (item of areas(); track item[0]) {
+          <option [value]="item[0]">{{ item[1] }}</option>
+        }
+      </select>
+    </div>
+  </div>
+  @if (loading()) {
+    <p class="empty-state" role="status">Cargando documentos…</p>
+  } @else if (!error()) {
+    <div class="table-responsive">
+      <table class="table">
+        <caption class="visually-hidden">
+          Documentos financieros autorizados
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Documento</th>
+            <th scope="col">Área</th>
+            <th scope="col">Importado por</th>
+            <th scope="col">Importación (UTC)</th>
+            <th scope="col">Registros</th>
+            <th scope="col">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (document of visible(); track document.documentoFinancieroId) {
+            <tr>
+              <td>{{ document.documentoFinancieroId }}</td>
+              <th scope="row">{{ document.nombreArchivo }}</th>
+              <td>{{ document.nombreArea }}</td>
+              <td>{{ document.nombreUsuario }}</td>
+              <td class="text-nowrap">
+                {{ document.fechaImportacion | date: 'dd/MM/yyyy HH:mm' : 'UTC' }}
+              </td>
+              <td>{{ document.totalRegistros }}</td>
+              <td>
+                <div class="table-actions">
+                  <a
+                    class="btn btn-outline-secondary btn-sm"
+                    [routerLink]="['/documentos', document.documentoFinancieroId]"
+                    [attr.aria-label]="'Ver documento ' + document.nombreArchivo"
+                    >Ver</a
+                  ><button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm"
+                    [disabled]="downloading() !== null"
+                    (click)="export(document.documentoFinancieroId)"
+                    [attr.aria-label]="'Exportar documento ' + document.nombreArchivo"
+                  >
+                    {{
+                      downloading() === document.documentoFinancieroId ? 'Preparando…' : 'Exportar'
+                    }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="empty-state">
+                No se encontraron documentos con estos criterios.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <app-pagination [total]="filtered().length" [page]="page()" (pageChange)="page.set($event)" />
+  }
+</section>
+<p class="form-text mt-3">
+  El archivo exportado se genera con los registros actuales del documento; no es una descarga del
+  archivo original.
+</p>

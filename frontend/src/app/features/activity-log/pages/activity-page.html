@@ -1,0 +1,157 @@
+<app-page-header
+  eyebrow="TRAZABILIDAD INSTITUCIONAL"
+  title="Bitácora de actividades"
+  description="Consulte las actividades y resultados registrados por el sistema dentro de su alcance autorizado."
+/>
+<app-trace-filters mode="activity" [busy]="list.loading()" (apply)="filter($event)" />
+<app-feedback [message]="list.error()" />
+<section class="panel" [attr.aria-busy]="list.loading()">
+  <div class="panel-heading">
+    <h2>Actividades registradas</h2>
+    <button
+      type="button"
+      class="btn btn-outline-secondary btn-sm"
+      [disabled]="list.loading()"
+      (click)="load()"
+    >
+      Actualizar consulta
+    </button>
+  </div>
+  @if (list.loading()) {
+    <p role="status" class="empty-state">Consultando actividades…</p>
+  } @else if (list.result(); as result) {
+    <div class="table-responsive">
+      <table class="table">
+        <caption class="visually-hidden">
+          Bitácora de actividades paginada por el servidor
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Fecha y hora (UTC)</th>
+            <th scope="col">Usuario</th>
+            <th scope="col">Actividad</th>
+            <th scope="col">Resultado</th>
+            <th scope="col">Área</th>
+            <th scope="col">Documento / registro</th>
+            <th scope="col">Detalle</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of result.registros; track row.bitacoraActividadId) {
+            <tr>
+              <td>{{ row.bitacoraActividadId }}</td>
+              <td class="text-nowrap">{{ row.fechaHora | utcTimestamp }}</td>
+              <td>
+                {{ row.nombreUsuario }}
+                @if (row.usuarioId !== null) {
+                  <span class="d-block small text-secondary">ID {{ row.usuarioId }}</span>
+                }
+              </td>
+              <td>{{ row.tipoActividad }}</td>
+              <td>
+                <span
+                  class="status"
+                  [class.status-active]="row.resultado === 'Exitoso'"
+                  [class.status-warning]="row.resultado === 'Fallido'"
+                  >{{ row.resultado }}</span
+                >
+              </td>
+              <td>{{ row.nombreArea ?? 'Sin área asociada' }}</td>
+              <td>
+                @if (row.documentoFinancieroId !== null) {
+                  <a class="d-block" [routerLink]="['/documentos', row.documentoFinancieroId]"
+                    >Documento {{ row.documentoFinancieroId }}</a
+                  >
+                }
+                @if (row.registroFinancieroId !== null) {
+                  <a class="d-block" [routerLink]="['/registros', row.registroFinancieroId]"
+                    >Registro {{ row.registroFinancieroId }}</a
+                  >
+                }
+                @if (row.documentoFinancieroId === null && row.registroFinancieroId === null) {
+                  <span class="text-secondary">Sin referencia</span>
+                }
+              </td>
+              <td>
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary btn-sm"
+                  [attr.aria-label]="'Ver actividad ' + row.bitacoraActividadId"
+                  [attr.aria-expanded]="selected() === row.bitacoraActividadId"
+                  aria-controls="activity-detail"
+                  (click)="show(row.bitacoraActividadId)"
+                >
+                  Ver detalle
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="8" class="empty-state">
+                No se encontraron actividades con los filtros y permisos actuales.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <app-pagination
+      [total]="result.totalRegistros"
+      [page]="result.pagina"
+      [size]="result.tamanoPagina"
+      (pageChange)="page($event)"
+    />
+  }
+</section>
+<p class="form-text mt-3">
+  La paginación y los filtros se aplican en el servidor. La bitácora no se edita ni se elimina desde
+  esta aplicación.
+</p>
+@if (selected() !== null) {
+  <section
+    id="activity-detail"
+    class="panel mt-4"
+    aria-label="Detalle de actividad"
+    [attr.aria-busy]="detail.loading()"
+  >
+    <div class="panel-heading">
+      <h2>Detalle de actividad {{ selected() }}</h2>
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="closeDetail()">
+        Cerrar detalle
+      </button>
+    </div>
+    <div class="panel-body">
+      <app-feedback [message]="detail.error()" />
+      @if (detail.loading()) {
+        <p role="status">Consultando actividad…</p>
+      } @else if (detail.result(); as item) {
+        <dl class="row">
+          <dt class="col-sm-3">Fecha y hora (UTC)</dt>
+          <dd class="col-sm-9">{{ item.fechaHora | utcTimestamp }}</dd>
+          <dt class="col-sm-3">Usuario</dt>
+          <dd class="col-sm-9">
+            {{ item.nombreUsuario }}
+            @if (item.usuarioId !== null) {
+              (ID {{ item.usuarioId }})
+            }
+          </dd>
+          <dt class="col-sm-3">Tipo de actividad</dt>
+          <dd class="col-sm-9">{{ item.tipoActividad }}</dd>
+          <dt class="col-sm-3">Resultado</dt>
+          <dd class="col-sm-9">{{ item.resultado }}</dd>
+          <dt class="col-sm-3">Área</dt>
+          <dd class="col-sm-9">{{ item.nombreArea ?? 'Sin área asociada' }}</dd>
+          <dt class="col-sm-3">Documento</dt>
+          <dd class="col-sm-9">{{ item.nombreDocumento ?? 'Sin documento asociado' }}</dd>
+          <dt class="col-sm-3">Dirección IP registrada</dt>
+          <dd class="col-sm-9">{{ item.direccionIp ?? 'No registrada' }}</dd>
+        </dl>
+        <h3 class="h6">Descripción de la actividad</h3>
+        <p class="activity-description mb-0">
+          {{ item.detalle ?? 'Sin detalle adicional registrado.' }}
+        </p>
+      }
+    </div>
+  </section>
+}

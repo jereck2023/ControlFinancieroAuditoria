@@ -1,0 +1,82 @@
+<main id="main-content" class="login-layout">
+  <section class="login-brand" aria-label="CFA institucional">
+    <a class="brand-lockup" href="/"
+      ><img src="assets/branding/cfa-mark.svg" alt="" width="48" height="48" /><span
+        >CFA<span class="brand-subtitle">Control financiero y auditoría</span></span
+      ></a
+    >
+    <div class="brand-story">
+      <p class="eyebrow">INFORMACIÓN BAJO CONTROL</p>
+      <h1>Confianza en cada registro.<br />Trazabilidad en cada acción.</h1>
+      <p>
+        Un entorno institucional para administrar el acceso a la información financiera y fortalecer
+        su seguimiento.
+      </p>
+      <div class="brand-principles">
+        <span>01 · Control de acceso</span><span>02 · Trazabilidad</span><span>03 · Auditoría</span>
+      </div>
+    </div>
+    <p class="brand-footer">Sistema web de uso interno · Acceso autorizado</p>
+  </section>
+  <section class="login-content">
+    <div class="login-card">
+      <p class="eyebrow">BIENVENIDO A CFA</p>
+      <h2>Iniciar sesión</h2>
+      <p class="text-secondary mb-4">Ingrese sus credenciales institucionales para continuar.</p>
+      <app-feedback [message]="notice()" kind="info" /><app-feedback [message]="error()" />
+      <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="busy()">
+        <fieldset [disabled]="busy()">
+          <div class="mb-4">
+            <label class="form-label" for="username">Nombre de usuario</label>
+            <input
+              id="username"
+              class="form-control"
+              formControlName="username"
+              autocomplete="username"
+              aria-describedby="username-error"
+              [attr.aria-invalid]="form.controls.username.touched && form.controls.username.invalid"
+            />
+            <app-field-error [control]="form.controls.username" errorId="username-error" />
+          </div>
+          <div class="mb-4">
+            <label class="form-label" for="password">Contraseña</label>
+            <div class="input-group">
+              <input
+                id="password"
+                class="form-control"
+                [type]="visible() ? 'text' : 'password'"
+                formControlName="password"
+                autocomplete="current-password"
+                aria-describedby="password-error"
+                [attr.aria-invalid]="
+                  form.controls.password.touched && form.controls.password.invalid
+                "
+              />
+              <button
+                class="btn btn-outline-secondary"
+                type="button"
+                [attr.aria-pressed]="visible()"
+                (click)="visible.set(!visible())"
+              >
+                {{ visible() ? 'Ocultar' : 'Mostrar' }}
+              </button>
+            </div>
+            <app-field-error [control]="form.controls.password" errorId="password-error" />
+          </div>
+          <button class="btn btn-primary w-100" type="submit">
+            {{ busy() ? 'Verificando acceso…' : 'Ingresar al sistema' }}
+            <span aria-hidden="true">→</span>
+          </button>
+        </fieldset>
+      </form>
+      <p class="login-help">
+        ¿Necesita restablecer su contraseña? Comuníquese con el administrador del sistema.
+      </p>
+      <p class="security-note">
+        Su sesión tiene una duración limitada. Cierre sesión al terminar, especialmente en equipos
+        compartidos.
+      </p>
+    </div>
+    <footer>CFA · Sistema de Control Financiero y Auditoría</footer>
+  </section>
+</main>

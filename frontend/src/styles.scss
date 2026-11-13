@@ -1,0 +1,18 @@
+@use 'styles/tokens' as t;
+@use 'bootstrap/scss/bootstrap' with (
+  $primary: t.$primary,
+  $body-color: t.$ink,
+  $body-bg: t.$surface,
+  $font-family-sans-serif: (
+    'Segoe UI',
+    system-ui,
+    -apple-system,
+    sans-serif,
+  ),
+  $border-color: t.$border,
+  $border-radius: 0.45rem,
+  $input-btn-padding-y: 0.65rem,
+  $input-btn-padding-x: 1rem,
+  $enable-shadows: false
+);
+@use 'styles/shared';
