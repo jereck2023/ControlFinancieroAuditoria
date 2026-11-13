@@ -851,6 +851,11 @@ namespace ControlFinanciero.API.Controllers
                 }
             }
 
+            await RegistrarActividadAdministrativaAsync(
+                "CambioEstadoUsuario",
+                usuario.AreaId,
+                $"Desactivación del usuario {usuario.UserName} (ID: {usuario.Id}).");
+
             usuario.Activo = false;
 
             var resultado = await _userManager.UpdateAsync(usuario);
@@ -874,11 +879,6 @@ namespace ControlFinanciero.API.Controllers
                     mensaje = "El usuario fue desactivado, pero no se pudo actualizar su seguridad."
                 });
             }
-
-            await RegistrarActividadAdministrativaAsync(
-                "CambioEstadoUsuario",
-                usuario.AreaId,
-                $"Desactivación del usuario {usuario.UserName} (ID: {usuario.Id}).");
 
             await transaccion.CommitAsync();
 
