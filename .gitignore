@@ -40,3 +40,7 @@ secrets.json
 *.bacpac
 *.mdf
 *.ldf
+
+# Documentos de trabajo internos de la preparación de la entrega
+/docs/despliegue/revision-entrega.md
+/docs/despliegue/sql/*.verificacion.json
