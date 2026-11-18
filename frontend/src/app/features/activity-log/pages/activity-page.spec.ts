@@ -4,8 +4,13 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { beforeEach, afterEach, describe, expect, it } from 'vitest';
 import { ActivityPage } from './activity-page';
+import { stubDialogMethods } from '../../../shared/ui/dialog-test-support';
 
 describe('Activity consultation UI (mocked HTTP)', () => {
+  let restoreDialog: () => void;
+  beforeEach(() => {
+    restoreDialog = stubDialogMethods();
+  });
   beforeEach(() =>
     TestBed.configureTestingModule({
       imports: [ActivityPage],
@@ -15,6 +20,7 @@ describe('Activity consultation UI (mocked HTTP)', () => {
   afterEach(() => {
     TestBed.inject(HttpTestingController).verify();
     TestBed.resetTestingModule();
+    restoreDialog();
   });
   const row = {
     bitacoraActividadId: 4,
@@ -47,6 +53,16 @@ describe('Activity consultation UI (mocked HTTP)', () => {
     await fixture.whenStable();
     expect(element.textContent).toContain('No registrada');
     expect(element.textContent).toContain('Sin detalle adicional registrado.');
+    expect(element.querySelector('dialog')?.open).toBe(true);
+    expect(element.querySelector('#activity-detail')).toBeNull();
+    expect(element.querySelector('pre, details')).toBeNull();
+    [...element.querySelectorAll<HTMLButtonElement>('dialog button')]
+      .find((button) => button.textContent?.trim() === 'Cerrar')
+      ?.click();
+    await fixture.whenStable();
+    expect(element.querySelector('dialog')).toBeNull();
+    expect(element.querySelector('tbody')?.textContent).toContain('Usuario QA');
+    http.expectNone((item) => item.url === '/api/bitacora-actividades');
   });
   it('clears old rows and detail after a forbidden refresh', async () => {
     const fixture = TestBed.createComponent(ActivityPage);

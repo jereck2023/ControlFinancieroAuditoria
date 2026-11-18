@@ -1,4 +1,45 @@
 <div class="filter-bar">
+  @if (showIdSearch()) {
+    <div class="filter-search">
+      <label for="record-id-search" class="form-label">Buscar por ID</label>
+      <div class="input-group">
+        <input
+          #recordId
+          id="record-id-search"
+          class="form-control"
+          type="text"
+          inputmode="numeric"
+          maxlength="10"
+          [value]="idInput()"
+          [disabled]="busy()"
+          aria-describedby="record-id-error"
+          (input)="idInput.set(recordId.value)"
+          (keydown.enter)="applyId()"
+        />
+        <button
+          type="button"
+          class="btn btn-outline-primary"
+          [disabled]="busy() || invalidId()"
+          (click)="applyId()"
+        >
+          Buscar
+        </button>
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          [disabled]="busy()"
+          (click)="clearId()"
+        >
+          Limpiar ID
+        </button>
+      </div>
+      @if (invalidId()) {
+        <small id="record-id-error" class="field-error"
+          >Ingrese un ID entero positivo válido.</small
+        >
+      }
+    </div>
+  }
   <div class="filter-search">
     <label for="record-search" class="form-label">Buscar descripción</label
     ><input
@@ -62,60 +103,66 @@
     La fecha inicial no puede superar la fecha final.
   </p>
 }
-<div class="table-responsive">
-  <table class="table">
-    <caption class="visually-hidden">
-      Registros financieros dentro de su alcance autorizado
-    </caption>
-    <thead>
-      <tr>
-        <th scope="col">ID</th>
-        <th scope="col">Fecha</th>
-        <th scope="col">Operación</th>
-        <th scope="col">Descripción</th>
-        <th scope="col">Área</th>
-        <th scope="col" class="text-end">Monto</th>
-        <th scope="col">Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (record of visible(); track record.registroFinancieroId) {
+@if (busy()) {
+  <p class="empty-state" role="status">Cargando registros…</p>
+} @else {
+  <div class="table-responsive">
+    <table class="table">
+      <caption class="visually-hidden">
+        Registros financieros dentro de su alcance autorizado
+      </caption>
+      <thead>
         <tr>
-          <td>{{ record.registroFinancieroId }}</td>
-          <td class="text-nowrap">{{ record.fechaOperacion | date: 'dd/MM/yyyy' : 'UTC' }}</td>
-          <td>
-            <span class="status" [class.status-active]="record.tipoOperacion === 'Ingreso'">{{
-              record.tipoOperacion
-            }}</span>
-          </td>
-          <th scope="row" class="fw-normal">{{ record.descripcion }}</th>
-          <td>{{ record.nombreArea }}</td>
-          <td class="text-end text-nowrap">{{ record.monto | financialAmount }}</td>
-          <td>
-            <div class="table-actions">
-              <a
-                class="btn btn-outline-secondary btn-sm"
-                [routerLink]="['/registros', record.registroFinancieroId]"
-                [attr.aria-label]="'Ver registro ' + record.registroFinancieroId"
-                >Ver</a
-              >
-              @if (policy.can('write-financial')) {
+          <th scope="col">ID</th>
+          <th scope="col">Fecha</th>
+          <th scope="col">Operación</th>
+          <th scope="col">Descripción</th>
+          <th scope="col">Área</th>
+          <th scope="col" class="text-end">Monto</th>
+          <th scope="col">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (record of visible(); track record.registroFinancieroId) {
+          <tr>
+            <td>{{ record.registroFinancieroId }}</td>
+            <td class="text-nowrap">{{ record.fechaOperacion | date: 'dd/MM/yyyy' : 'UTC' }}</td>
+            <td>
+              <span class="status" [class.status-active]="record.tipoOperacion === 'Ingreso'">{{
+                record.tipoOperacion
+              }}</span>
+            </td>
+            <th scope="row" class="fw-normal">{{ record.descripcion }}</th>
+            <td>{{ record.nombreArea }}</td>
+            <td class="text-end text-nowrap">{{ record.monto | financialAmount }}</td>
+            <td>
+              <div class="table-actions">
                 <a
                   class="btn btn-outline-secondary btn-sm"
-                  [routerLink]="['/registros', record.registroFinancieroId, 'editar']"
-                  [attr.aria-label]="'Editar registro ' + record.registroFinancieroId"
-                  >Editar</a
+                  [routerLink]="['/registros', record.registroFinancieroId]"
+                  [attr.aria-label]="'Ver registro ' + record.registroFinancieroId"
+                  >Ver</a
                 >
-              }
-            </div>
-          </td>
-        </tr>
-      } @empty {
-        <tr>
-          <td colspan="7" class="empty-state">No se encontraron registros con estos criterios.</td>
-        </tr>
-      }
-    </tbody>
-  </table>
-</div>
-<app-pagination [total]="filtered().length" [page]="page()" (pageChange)="page.set($event)" />
+                @if (policy.can('write-financial')) {
+                  <a
+                    class="btn btn-outline-secondary btn-sm"
+                    [routerLink]="['/registros', record.registroFinancieroId, 'editar']"
+                    [attr.aria-label]="'Editar registro ' + record.registroFinancieroId"
+                    >Editar</a
+                  >
+                }
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7" class="empty-state">
+              No se encontraron registros con estos criterios.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <app-pagination [total]="filtered().length" [page]="page()" (pageChange)="page.set($event)" />
+}

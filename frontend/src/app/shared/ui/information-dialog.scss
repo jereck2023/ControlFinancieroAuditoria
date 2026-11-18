@@ -1,0 +1,31 @@
+:host {
+  display: contents;
+}
+dialog {
+  width: min(60rem, calc(100vw - 2rem));
+  max-width: calc(100vw - 2rem);
+  max-height: calc(100dvh - 2rem);
+  padding: 0;
+  overflow: hidden;
+}
+dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+.panel-heading {
+  flex: 0 0 auto;
+  gap: 1rem;
+}
+.information-body {
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  overflow-wrap: break-word;
+  padding: 1.5rem;
+}
+@media (max-width: 575.98px) {
+  .panel-heading,
+  .information-body {
+    padding: 1rem;
+  }
+}

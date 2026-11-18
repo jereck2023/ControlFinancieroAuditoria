@@ -1,0 +1,89 @@
+<app-page-header
+  eyebrow="CONSULTA INSTITUCIONAL"
+  title="Usuarios de mi área"
+  description="Consulte las cuentas asignadas a su área institucional. Esta consulta es de solo lectura."
+/>
+<app-feedback [message]="error()" />
+<section class="panel" [attr.aria-busy]="loading()">
+  <div class="panel-heading">
+    <h2>Equipo de mi área</h2>
+    <button
+      class="btn btn-outline-secondary btn-sm"
+      type="button"
+      [disabled]="loading()"
+      (click)="load()"
+    >
+      Actualizar
+    </button>
+  </div>
+  <div class="filter-bar">
+    <div class="filter-search">
+      <label for="area-user-search" class="form-label">Buscar usuario</label>
+      <input
+        #query
+        id="area-user-search"
+        class="form-control"
+        type="search"
+        placeholder="Usuario o nombre completo"
+        (input)="filter(query.value, state())"
+      />
+    </div>
+    <div class="filter-select">
+      <label for="area-user-state" class="form-label">Estado</label>
+      <select
+        #status
+        id="area-user-state"
+        class="form-select"
+        (change)="filter(search(), status.value)"
+      >
+        <option value="all">Todos</option>
+        <option value="active">Activos</option>
+        <option value="inactive">Inactivos</option>
+      </select>
+    </div>
+  </div>
+  @if (loading()) {
+    <p class="empty-state" role="status">Cargando usuarios…</p>
+  } @else if (!error()) {
+    <div class="table-responsive">
+      <table class="table">
+        <caption class="visually-hidden">
+          Usuarios de mi área, roles y estado
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Usuario</th>
+            <th scope="col">Nombre completo</th>
+            <th scope="col">Roles</th>
+            <th scope="col">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of visible(); track user.id) {
+            <tr>
+              <th scope="row">{{ user.userName }}</th>
+              <td>{{ user.nombreCompleto }}</td>
+              <td>
+                @for (role of user.roles; track role) {
+                  <span class="role-tag">{{ labels[role] }}</span>
+                }
+              </td>
+              <td>
+                <span class="status" [class.status-active]="user.activo">{{
+                  user.activo ? 'Activo' : 'Inactivo'
+                }}</span>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4" class="empty-state">
+                No se encontraron usuarios con estos criterios.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <app-pagination [total]="filtered().length" [page]="page()" (pageChange)="page.set($event)" />
+  }
+</section>

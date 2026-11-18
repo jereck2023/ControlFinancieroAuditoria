@@ -4,9 +4,9 @@ import { Session } from '../../../core/auth/session';
 import { FieldError } from '../../../shared/forms/field-error';
 import {
   optionalId,
-  optionalUtcDate,
-  utcDateRange,
-  utcQueryDate,
+  optionalPeruDate,
+  peruDateRange,
+  peruQueryDate,
 } from '../../../shared/traceability/trace-query';
 import { AlertState, AlertQuery } from '../models/requests/alert-requests';
 @Component({
@@ -25,11 +25,11 @@ export class AlertFilters {
       reglaAnomaliaId: this.fb.control<number | null>(null, optionalId),
       areaId: this.fb.control<number | null>(null, optionalId),
       usuarioId: this.fb.control<number | null>(null, optionalId),
-      fechaDesde: this.fb.nonNullable.control('', optionalUtcDate),
-      fechaHasta: this.fb.nonNullable.control('', optionalUtcDate),
+      fechaDesde: this.fb.nonNullable.control('', optionalPeruDate),
+      fechaHasta: this.fb.nonNullable.control('', optionalPeruDate),
       tamanoPagina: this.fb.nonNullable.control(20),
     },
-    { validators: utcDateRange },
+    { validators: peruDateRange },
   );
   protected submit(): void {
     this.form.markAllAsTouched();
@@ -42,8 +42,8 @@ export class AlertFilters {
       ...(v.reglaAnomaliaId !== null ? { reglaAnomaliaId: v.reglaAnomaliaId } : {}),
       ...(this.auditor && v.areaId !== null ? { areaId: v.areaId } : {}),
       ...(v.usuarioId !== null ? { usuarioId: v.usuarioId } : {}),
-      ...(v.fechaDesde ? { fechaDesde: utcQueryDate(v.fechaDesde) } : {}),
-      ...(v.fechaHasta ? { fechaHasta: utcQueryDate(v.fechaHasta, true) } : {}),
+      ...(v.fechaDesde ? { fechaDesde: peruQueryDate(v.fechaDesde) } : {}),
+      ...(v.fechaHasta ? { fechaHasta: peruQueryDate(v.fechaHasta, true) } : {}),
     });
   }
   protected clear(): void {

@@ -61,7 +61,7 @@
             <th scope="col">Documento</th>
             <th scope="col">Área</th>
             <th scope="col">Importado por</th>
-            <th scope="col">Importación (UTC)</th>
+            <th scope="col">Importación (hora de Perú)</th>
             <th scope="col">Registros</th>
             <th scope="col">Acciones</th>
           </tr>
@@ -74,7 +74,7 @@
               <td>{{ document.nombreArea }}</td>
               <td>{{ document.nombreUsuario }}</td>
               <td class="text-nowrap">
-                {{ document.fechaImportacion | date: 'dd/MM/yyyy HH:mm' : 'UTC' }}
+                {{ document.fechaImportacion | date: 'dd/MM/yyyy HH:mm' : '-0500' }}
               </td>
               <td>{{ document.totalRegistros }}</td>
               <td>

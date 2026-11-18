@@ -8,6 +8,7 @@ import {
   ResetPasswordRequest,
 } from '../models/requests/user-requests';
 import { UserResponse } from '../models/responses/user-response';
+import { AreaUserResponse } from '../models/responses/area-user-response';
 import {
   CreateUserResponse,
   UpdateUserResponse,
@@ -20,6 +21,9 @@ import {
 export class UsersApi {
   private readonly http = inject(HttpClient);
   private readonly url = `${environment.apiBaseUrl}/usuarios`;
+  listMyArea() {
+    return this.http.get<AreaUserResponse[]>(`${this.url}/mi-area`);
+  }
   list() {
     return this.http.get<UserResponse[]>(this.url);
   }

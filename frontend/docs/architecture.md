@@ -27,7 +27,9 @@ Alertas tiene consulta paginada, detalle inline y acciones confirmadas con versi
 
 ## Permisos administrativos
 
-Consulta de áreas: cualquier usuario autenticado que haya completado el cambio obligatorio. Mantenimiento de áreas y todas las operaciones de usuarios: requiere `Administrador`, también cuando se combina con otros roles. No se infiere acceso a módulos financieros o de auditoría.
+Consulta del directorio de áreas: requiere `Administrador` o `Auditor`. El mantenimiento de áreas y la administración general de usuarios siguen requiriendo `Administrador`, también cuando se combina con otros roles. No se infiere acceso a módulos financieros o de auditoría.
+
+Desde el bloque de correcciones de permisos del 14/11/2026, `JefeArea` puede consultar usuarios de su propia área activa mediante `GET /api/usuarios/mi-area` y la ruta `/usuarios-mi-area`. El servidor determina el área a partir del usuario autenticado, no de parámetros. El contrato reducido solo contiene identificador, nombre de usuario, nombre completo, estado y roles. No hay acciones administrativas ni consulta al directorio de áreas en esa pantalla. Administrador + JefeArea conserva el listado global administrativo; JefeArea + Auditor conserva el catálogo global de áreas por Auditor y el listado propio por JefeArea. Los endpoints administrativos existentes no se ampliaron. Véase [correcciones-permisos-bloque-1.md](correcciones-permisos-bloque-1.md).
 
 Se admite selección múltiple de los cuatro roles oficiales. Solo `Administrador` exclusivo permite área nula. Crear/editar exige área activa si se asigna. Cambiar roles requiere primero asignar área cuando corresponda; se respeta la separación de los endpoints, sin presentar dos escrituras como una transacción.
 

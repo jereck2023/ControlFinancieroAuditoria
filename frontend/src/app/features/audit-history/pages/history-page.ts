@@ -8,10 +8,11 @@ import { HistoryChanges } from '../components/history-changes';
 import { QueryState } from '../../../shared/http/query-state';
 import { TraceFilters } from '../../../shared/traceability/trace-filters';
 import { TraceFiltersValue } from '../../../shared/traceability/trace-query';
-import { UtcTimestamp } from '../../../shared/traceability/utc-timestamp';
+import { PeruTimestamp } from '../../../shared/traceability/peru-timestamp';
 import { PageHeader } from '../../../shared/ui/page-header';
 import { Feedback } from '../../../shared/ui/feedback';
 import { Pagination } from '../../../shared/ui/pagination';
+import { InformationDialog } from '../../../shared/ui/information-dialog';
 
 @Component({
   selector: 'app-history-page',
@@ -19,10 +20,11 @@ import { Pagination } from '../../../shared/ui/pagination';
     RouterLink,
     HistoryChanges,
     TraceFilters,
-    UtcTimestamp,
+    PeruTimestamp,
     PageHeader,
     Feedback,
     Pagination,
+    InformationDialog,
   ],
   templateUrl: './history-page.html',
 })

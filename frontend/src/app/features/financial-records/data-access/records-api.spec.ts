@@ -15,6 +15,15 @@ describe('Module 4 HTTP contracts (mocked)', () => {
     testing = TestBed.inject(HttpTestingController);
   });
   afterEach(() => testing.verify());
+  it('envía el ID exacto al servidor sin cambiar el contrato de la lista', () => {
+    TestBed.inject(RecordsApi)
+      .list({ registroFinancieroId: 21048 })
+      .subscribe((value) => expect(value).toEqual([]));
+    const request = testing.expectOne('/api/registros-financieros?registroFinancieroId=21048');
+    expect(request.request.params.get('registroFinancieroId')).toBe('21048');
+    expect(request.request.params.keys()).toEqual(['registroFinancieroId']);
+    request.flush('[]');
+  });
   it('does not invent server-side pagination or filters on full-list endpoints', () => {
     TestBed.inject(RecordsApi)
       .list()

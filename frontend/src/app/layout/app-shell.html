@@ -7,6 +7,9 @@
     >
     <p class="nav-label">ESPACIO INSTITUCIONAL</p>
     <nav (click)="menuOpen.set(false)">
+      <a routerLink="/inicio" routerLinkActive="active" ariaCurrentWhenActive="page"
+        ><span aria-hidden="true">⌂</span> Inicio</a
+      >
       @if (policy.can('read-financial')) {
         <a routerLink="/documentos" routerLinkActive="active" ariaCurrentWhenActive="page"
           ><span aria-hidden="true">▧</span> Documentos financieros</a
@@ -20,17 +23,17 @@
           ><span aria-hidden="true">↑</span> Importar Excel</a
         >
       }
+      @if (policy.can('read-reports')) {
+        <a routerLink="/reportes-financieros" routerLinkActive="active" ariaCurrentWhenActive="page"
+          ><span aria-hidden="true">▥</span> Reportes financieros</a
+        >
+      }
       @if (policy.can('read-traceability')) {
         <a routerLink="/historial-auditoria" routerLinkActive="active" ariaCurrentWhenActive="page"
           ><span aria-hidden="true">⌕</span> Historial de auditoría</a
         >
         <a routerLink="/bitacora-actividades" routerLinkActive="active" ariaCurrentWhenActive="page"
           ><span aria-hidden="true">☷</span> Bitácora de actividades</a
-        >
-      }
-      @if (policy.can('read-reports')) {
-        <a routerLink="/reportes-financieros" routerLinkActive="active" ariaCurrentWhenActive="page"
-          ><span aria-hidden="true">▥</span> Reportes financieros</a
         >
       }
       @if (policy.can('detect-anomalies')) {
@@ -43,9 +46,6 @@
           ><span aria-hidden="true">⚑</span> Gestión de alertas</a
         >
       }
-      <a routerLink="/inicio" routerLinkActive="active" ariaCurrentWhenActive="page"
-        ><span aria-hidden="true">⌂</span> Inicio</a
-      >
       @if (policy.can('read-areas')) {
         <a routerLink="/areas" routerLinkActive="active" ariaCurrentWhenActive="page"
           ><span aria-hidden="true">▤</span> Áreas institucionales</a
@@ -53,7 +53,11 @@
       }
       @if (policy.can('manage-users')) {
         <a routerLink="/usuarios" routerLinkActive="active" ariaCurrentWhenActive="page"
-          ><span aria-hidden="true">♙</span> Usuarios y roles</a
+          ><span aria-hidden="true">♙</span> Gestión de usuarios</a
+        >
+      } @else if (policy.can('read-area-users')) {
+        <a routerLink="/usuarios-mi-area" routerLinkActive="active" ariaCurrentWhenActive="page"
+          ><span aria-hidden="true">♙</span> Usuarios de mi área</a
         >
       }
     </nav>

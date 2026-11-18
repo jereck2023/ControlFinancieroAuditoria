@@ -4,8 +4,13 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { beforeEach, afterEach, describe, expect, it } from 'vitest';
 import { HistoryPage } from './history-page';
+import { stubDialogMethods } from '../../../shared/ui/dialog-test-support';
 
 describe('History consultation UI (mocked HTTP)', () => {
+  let restoreDialog: () => void;
+  beforeEach(() => {
+    restoreDialog = stubDialogMethods();
+  });
   beforeEach(() =>
     TestBed.configureTestingModule({
       imports: [HistoryPage],
@@ -15,6 +20,7 @@ describe('History consultation UI (mocked HTTP)', () => {
   afterEach(() => {
     TestBed.inject(HttpTestingController).verify();
     TestBed.resetTestingModule();
+    restoreDialog();
   });
   const row = {
     historialAuditoriaId: 1,
@@ -84,21 +90,28 @@ describe('History consultation UI (mocked HTTP)', () => {
     await fixture.whenStable();
     const element = fixture.nativeElement as HTMLElement;
     element.querySelector<HTMLButtonElement>('[aria-label="Ver cambios del historial 1"]')?.click();
-    http
-      .expectOne('/api/historial-auditoria/1')
-      .flush(
-        JSON.stringify({
-          ...row,
-          valoresModificados: {
-            Anteriores: { Descripcion: 'Antes' },
-            Nuevos: { Descripcion: '<script>Prueba</script>' },
-          },
-        }),
-      );
+    http.expectOne('/api/historial-auditoria/1').flush(
+      JSON.stringify({
+        ...row,
+        valoresModificados: {
+          Anteriores: { Descripcion: 'Antes' },
+          Nuevos: { Descripcion: '<script>Prueba</script>' },
+        },
+      }),
+    );
     await fixture.whenStable();
     expect(element.textContent).toContain('<script>Prueba</script>');
     expect(element.querySelector('script')).toBeNull();
     expect(element.textContent).not.toContain('Eliminar');
     expect(element.textContent).not.toContain('Exportar');
+    expect(element.querySelector('dialog')?.open).toBe(true);
+    expect(element.querySelector('#history-detail')).toBeNull();
+    expect(element.querySelector('pre, details')).toBeNull();
+    expect(element.textContent).not.toContain('Ver contenido completo');
+    element.querySelector('dialog')?.dispatchEvent(new Event('cancel', { cancelable: true }));
+    await fixture.whenStable();
+    expect(element.querySelector('dialog')).toBeNull();
+    expect(element.querySelector('tbody')?.textContent).toContain('Usuario QA');
+    http.expectNone((item) => item.url === '/api/historial-auditoria');
   });
 });

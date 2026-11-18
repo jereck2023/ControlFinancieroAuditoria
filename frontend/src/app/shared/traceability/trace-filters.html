@@ -71,7 +71,7 @@
           </div>
         }
         <div class="col-sm-6 col-xl-4">
-          <label for="trace-from" class="form-label">Desde (UTC)</label
+          <label for="trace-from" class="form-label">Desde (Perú)</label
           ><input
             id="trace-from"
             type="datetime-local"
@@ -84,7 +84,7 @@
           /><app-field-error [control]="form.controls.fechaDesde" errorId="trace-from-error" />
         </div>
         <div class="col-sm-6 col-xl-4">
-          <label for="trace-until" class="form-label">Hasta (UTC)</label
+          <label for="trace-until" class="form-label">Hasta (Perú)</label
           ><input
             id="trace-until"
             type="datetime-local"
@@ -112,8 +112,9 @@
         </p>
       }
       <p class="form-text mt-3">
-        Los identificadores son opcionales. El servidor limita la consulta a su alcance autorizado.
-        El filtro Hasta incluye todo el segundo seleccionado.
+        Las fechas y horas corresponden a Perú (UTC-05:00). Los identificadores son opcionales. El
+        servidor limita la consulta a su alcance autorizado. El filtro Hasta incluye todo el segundo
+        seleccionado.
       </p>
       <div class="d-flex gap-2 mt-3">
         <button type="submit" class="btn btn-primary">

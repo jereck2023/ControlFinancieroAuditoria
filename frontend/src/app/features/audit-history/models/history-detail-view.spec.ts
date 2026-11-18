@@ -29,4 +29,23 @@ describe('Historical before/after display', () => {
     expect(changeFields({ OtroFormato: ['texto', null] })).toEqual([]);
     expect(displayJson({ OtroFormato: ['texto', null] })).toContain('OtroFormato');
   });
+  it('presents known dates and never renders unknown or nested event content', () => {
+    const fields = changeFields({
+      Anteriores: {
+        FechaOperacion: '2026-11-14',
+        Descripcion: { interno: 'oculto' },
+        Token: 'secreto',
+      },
+      Nuevos: { FechaOperacion: '2026-11-15', Descripcion: 'Descripción legible', Token: 'otro' },
+    });
+    expect(fields).toHaveLength(2);
+    expect(fields.find((f) => f.campo === 'FechaOperacion')).toMatchObject({
+      anterior: '14/11/2026',
+      nuevo: '15/11/2026',
+    });
+    expect(fields.find((f) => f.campo === 'Descripcion')?.anterior).toBe(
+      'Valor no disponible para presentación',
+    );
+    expect(fields.some((f) => f.campo === 'Token')).toBe(false);
+  });
 });

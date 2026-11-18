@@ -2,6 +2,16 @@ import { AbstractControl, ValidatorFn } from '@angular/forms';
 export function alertStateLabel(state: string): string {
   return state === 'En revision' ? 'En revisión' : state;
 }
+export function alertFieldLabel(field: string | null): string {
+  if (field === null) return 'No aplica';
+  const labels: Record<string, string> = {
+    TipoOperacion: 'Tipo de operación',
+    Descripcion: 'Descripción',
+    FechaOperacion: 'Fecha de operación',
+    Monto: 'Monto',
+  };
+  return Object.hasOwn(labels, field) ? labels[field] : 'Campo no identificado';
+}
 export const closeJustification: ValidatorFn = (control: AbstractControl) => {
   const text: unknown = control.value;
   return typeof text === 'string' && text.trim().length >= 10 && text.trim().length <= 1000

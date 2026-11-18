@@ -54,3 +54,6 @@ Thumbs.db
 
 # Inventario generado del equipo de trabajo, no necesario para el clon
 /docs/revision-tecnica-final-git.txt
+
+# Diagnóstico puntual ligado al PID de una instancia local, conservado solo como herramienta local
+/scripts/inspect-document-timestamp.mjs

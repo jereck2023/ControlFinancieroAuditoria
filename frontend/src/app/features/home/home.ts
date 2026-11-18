@@ -116,6 +116,16 @@ import { PageHeader } from '../../shared/ui/page-header';
             </p></a
           >
         </div>
+      } @else if (policy.can('read-area-users')) {
+        <div class="col-md-6">
+          <a
+            routerLink="/usuarios-mi-area"
+            class="panel panel-body d-block h-100 text-decoration-none"
+            ><p class="eyebrow">EQUIPO INSTITUCIONAL</p>
+            <h2>Usuarios de mi área <span aria-hidden="true">→</span></h2>
+            <p class="text-secondary mb-0">Consulte las cuentas, roles y estados de su área.</p></a
+          >
+        </div>
       }
     </div>`,
 })

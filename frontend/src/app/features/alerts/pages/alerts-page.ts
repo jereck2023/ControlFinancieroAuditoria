@@ -12,13 +12,23 @@ import { QueryState } from '../../../shared/http/query-state';
 import { PageHeader } from '../../../shared/ui/page-header';
 import { Feedback } from '../../../shared/ui/feedback';
 import { Pagination } from '../../../shared/ui/pagination';
-import { UtcTimestamp } from '../../../shared/traceability/utc-timestamp';
+import { PeruTimestamp } from '../../../shared/traceability/peru-timestamp';
+import { InformationDialog } from '../../../shared/ui/information-dialog';
 import { AlertFilters } from '../components/alert-filters';
 import { AlertStatus } from '../components/alert-status';
 import { AlertDetail } from '../components/alert-detail';
 @Component({
   selector: 'app-alerts-page',
-  imports: [PageHeader, Feedback, Pagination, UtcTimestamp, AlertFilters, AlertStatus, AlertDetail],
+  imports: [
+    PageHeader,
+    Feedback,
+    Pagination,
+    PeruTimestamp,
+    AlertFilters,
+    AlertStatus,
+    AlertDetail,
+    InformationDialog,
+  ],
   templateUrl: './alerts-page.html',
 })
 export class AlertsPage {

@@ -25,15 +25,17 @@ export class RecordsList {
   protected readonly downloading = signal(false);
   protected readonly error = signal('');
   protected readonly downloadError = signal('');
+  protected readonly recordId = signal<number | undefined>(undefined);
   constructor() {
     this.load();
   }
   protected load(): void {
+    if (this.loading()) return;
     this.loading.set(true);
     this.error.set('');
     this.records.set([]);
     this.api
-      .list()
+      .list({ registroFinancieroId: this.recordId() })
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         finalize(() => this.loading.set(false)),
@@ -42,6 +44,11 @@ export class RecordsList {
         next: (records) => this.records.set(records),
         error: (error: unknown) => this.error.set(errorMessage(error)),
       });
+  }
+  protected searchId(id: number | undefined): void {
+    if (this.loading()) return;
+    this.recordId.set(id);
+    this.load();
   }
   protected export(): void {
     if (this.downloading()) return;

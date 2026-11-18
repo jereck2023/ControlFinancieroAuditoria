@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { RecordFormValue } from '../models/record-view';
+import { RecordQuery } from '../models/requests/record-query';
 import { CreateRecordResponse, UpdateRecordResponse } from '../models/responses/record-response';
 import { decodeRecord, decodeRecords, encodeRecord } from './record-codec';
 
@@ -10,8 +11,11 @@ import { decodeRecord, decodeRecords, encodeRecord } from './record-codec';
 export class RecordsApi {
   private readonly http = inject(HttpClient);
   private readonly url = `${environment.apiBaseUrl}/registros-financieros`;
-  list() {
-    return this.http.get(this.url, { responseType: 'text' }).pipe(map(decodeRecords));
+  list(query: RecordQuery = {}) {
+    const params: Record<string, string> = {};
+    if (query.registroFinancieroId !== undefined)
+      params['registroFinancieroId'] = String(query.registroFinancieroId);
+    return this.http.get(this.url, { params, responseType: 'text' }).pipe(map(decodeRecords));
   }
   get(id: number) {
     return this.http.get(`${this.url}/${id}`, { responseType: 'text' }).pipe(map(decodeRecord));

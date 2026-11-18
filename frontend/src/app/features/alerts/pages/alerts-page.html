@@ -30,7 +30,7 @@
           <tr>
             <th scope="col">ID / estado</th>
             <th scope="col">Anomalía</th>
-            <th scope="col">Evento / detección (UTC)</th>
+            <th scope="col">Evento / detección (hora de Perú)</th>
             <th scope="col">Regla</th>
             <th scope="col">Usuario / área</th>
             <th scope="col">Detalle</th>
@@ -45,9 +45,9 @@
               </td>
               <td>{{ row.titulo }}</td>
               <td class="text-nowrap">
-                {{ row.fechaHoraEvento | utcTimestamp
+                {{ row.fechaHoraEvento | peruTimestamp
                 }}<span class="d-block small text-secondary"
-                  >Detectada: {{ row.fechaHoraDeteccion | utcTimestamp }}</span
+                  >Detectada: {{ row.fechaHoraDeteccion | peruTimestamp }}</span
                 >
               </td>
               <td>
@@ -69,8 +69,7 @@
                   class="btn btn-outline-secondary btn-sm"
                   [disabled]="mutating()"
                   [attr.aria-label]="'Ver alerta ' + row.alertaId"
-                  [attr.aria-expanded]="selected() === row.alertaId"
-                  aria-controls="alert-detail"
+                  aria-haspopup="dialog"
                   (click)="show(row.alertaId)"
                 >
                   Ver detalle
@@ -96,55 +95,45 @@
   }
 </section>
 <p class="form-text mt-3">
-  El listado y sus filtros se aplican en el servidor. La ejecución de detecciones se realiza en su
-  sección independiente.
+  Las alertas se generan automáticamente. El listado y sus filtros respetan su alcance autorizado.
 </p>
 @if (selected() !== null) {
-  <section
-    id="alert-detail"
-    class="panel mt-4"
-    aria-label="Detalle de alerta"
-    [attr.aria-busy]="detailLoading() || mutating()"
+  <app-information-dialog
+    [title]="'Detalle de alerta ' + selected()"
+    [busy]="mutating()"
+    (dismiss)="closeDetail()"
   >
-    <div class="panel-heading">
-      <h2>Detalle de alerta {{ selected() }}</h2>
-      <div class="d-flex gap-2">
+    <div [attr.aria-busy]="detailLoading() || mutating()">
+      <div class="d-flex justify-content-end mb-3">
         <button
           type="button"
           class="btn btn-outline-secondary btn-sm"
           [disabled]="mutating() || detailLoading()"
           (click)="reloadDetail()"
         >
-          Actualizar detalle</button
-        ><button
-          type="button"
-          class="btn btn-outline-secondary btn-sm"
-          [disabled]="mutating()"
-          (click)="closeDetail()"
-        >
-          Cerrar detalle
+          Actualizar detalle
         </button>
       </div>
+      <div>
+        <app-feedback [message]="notice()" kind="success" /><app-feedback
+          [message]="actionError()"
+        /><app-feedback [message]="conflict()" kind="info" /><app-feedback
+          [message]="detailError()"
+        />
+      </div>
+      @if (detailLoading()) {
+        <p role="status">Actualizando datos de la alerta…</p>
+      }
+      @if (detail(); as item) {
+        <app-alert-detail
+          [alert]="item"
+          [busy]="mutating()"
+          [disabled]="stale() || detailLoading()"
+          [error]="actionError()"
+          (action)="act($event)"
+          (prepare)="clearActionFeedback()"
+        />
+      }
     </div>
-    <div class="px-4 pt-3">
-      <app-feedback [message]="notice()" kind="success" /><app-feedback
-        [message]="actionError()"
-      /><app-feedback [message]="conflict()" kind="info" /><app-feedback
-        [message]="detailError()"
-      />
-    </div>
-    @if (detailLoading()) {
-      <p role="status" class="px-4 pt-3">Actualizando datos de la alerta…</p>
-    }
-    @if (detail(); as item) {
-      <app-alert-detail
-        [alert]="item"
-        [busy]="mutating()"
-        [disabled]="stale() || detailLoading()"
-        [error]="actionError()"
-        (action)="act($event)"
-        (prepare)="clearActionFeedback()"
-      />
-    }
-  </section>
+  </app-information-dialog>
 }

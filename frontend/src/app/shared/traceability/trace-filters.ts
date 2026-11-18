@@ -1,7 +1,7 @@
 import { Component, inject, input, output } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { FieldError } from '../forms/field-error';
-import { TraceFiltersValue, optionalId, optionalUtcDate, utcDateRange } from './trace-query';
+import { TraceFiltersValue, optionalId, optionalPeruDate, peruDateRange } from './trace-query';
 
 const defaults: TraceFiltersValue = {
   usuarioId: null,
@@ -31,11 +31,11 @@ export class TraceFilters {
       registroFinancieroId: this.fb.control<number | null>(null, optionalId),
       tipoAccion: this.fb.nonNullable.control<TraceFiltersValue['tipoAccion']>(''),
       tipoActividad: this.fb.nonNullable.control(''),
-      fechaDesde: this.fb.nonNullable.control('', optionalUtcDate),
-      fechaHasta: this.fb.nonNullable.control('', optionalUtcDate),
+      fechaDesde: this.fb.nonNullable.control('', optionalPeruDate),
+      fechaHasta: this.fb.nonNullable.control('', optionalPeruDate),
       tamanoPagina: this.fb.nonNullable.control(20),
     },
-    { validators: utcDateRange },
+    { validators: peruDateRange },
   );
   protected submit(): void {
     this.form.markAllAsTouched();

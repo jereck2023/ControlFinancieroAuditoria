@@ -28,7 +28,7 @@
         <thead>
           <tr>
             <th scope="col">ID</th>
-            <th scope="col">Fecha y hora (UTC)</th>
+            <th scope="col">Fecha y hora (Perú)</th>
             <th scope="col">Usuario</th>
             <th scope="col">Actividad</th>
             <th scope="col">Resultado</th>
@@ -41,7 +41,7 @@
           @for (row of result.registros; track row.bitacoraActividadId) {
             <tr>
               <td>{{ row.bitacoraActividadId }}</td>
-              <td class="text-nowrap">{{ row.fechaHora | utcTimestamp }}</td>
+              <td class="text-nowrap">{{ row.fechaHora | peruTimestamp }}</td>
               <td>
                 {{ row.nombreUsuario }}
                 @if (row.usuarioId !== null) {
@@ -78,8 +78,7 @@
                   type="button"
                   class="btn btn-outline-secondary btn-sm"
                   [attr.aria-label]="'Ver actividad ' + row.bitacoraActividadId"
-                  [attr.aria-expanded]="selected() === row.bitacoraActividadId"
-                  aria-controls="activity-detail"
+                  aria-haspopup="dialog"
                   (click)="show(row.bitacoraActividadId)"
                 >
                   Ver detalle
@@ -109,26 +108,15 @@
   esta aplicación.
 </p>
 @if (selected() !== null) {
-  <section
-    id="activity-detail"
-    class="panel mt-4"
-    aria-label="Detalle de actividad"
-    [attr.aria-busy]="detail.loading()"
-  >
-    <div class="panel-heading">
-      <h2>Detalle de actividad {{ selected() }}</h2>
-      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="closeDetail()">
-        Cerrar detalle
-      </button>
-    </div>
-    <div class="panel-body">
+  <app-information-dialog [title]="'Detalle de actividad ' + selected()" (dismiss)="closeDetail()">
+    <div [attr.aria-busy]="detail.loading()">
       <app-feedback [message]="detail.error()" />
       @if (detail.loading()) {
         <p role="status">Consultando actividad…</p>
       } @else if (detail.result(); as item) {
         <dl class="row">
-          <dt class="col-sm-3">Fecha y hora (UTC)</dt>
-          <dd class="col-sm-9">{{ item.fechaHora | utcTimestamp }}</dd>
+          <dt class="col-sm-3">Fecha y hora (Perú)</dt>
+          <dd class="col-sm-9">{{ item.fechaHora | peruTimestamp }}</dd>
           <dt class="col-sm-3">Usuario</dt>
           <dd class="col-sm-9">
             {{ item.nombreUsuario }}
@@ -153,5 +141,5 @@
         </p>
       }
     </div>
-  </section>
+  </app-information-dialog>
 }

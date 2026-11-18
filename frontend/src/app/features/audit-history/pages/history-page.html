@@ -28,7 +28,7 @@
         <thead>
           <tr>
             <th scope="col">ID</th>
-            <th scope="col">Fecha y hora (UTC)</th>
+            <th scope="col">Fecha y hora (Perú)</th>
             <th scope="col">Usuario</th>
             <th scope="col">Área</th>
             <th scope="col">Registro / documento</th>
@@ -40,7 +40,7 @@
           @for (row of result.registros; track row.historialAuditoriaId) {
             <tr>
               <td>{{ row.historialAuditoriaId }}</td>
-              <td class="text-nowrap">{{ row.fechaHora | utcTimestamp }}</td>
+              <td class="text-nowrap">{{ row.fechaHora | peruTimestamp }}</td>
               <td>
                 {{ row.nombreUsuario
                 }}<span class="d-block small text-secondary">ID {{ row.usuarioId }}</span>
@@ -65,8 +65,7 @@
                   type="button"
                   class="btn btn-outline-secondary btn-sm"
                   [attr.aria-label]="'Ver cambios del historial ' + row.historialAuditoriaId"
-                  [attr.aria-expanded]="selected() === row.historialAuditoriaId"
-                  aria-controls="history-detail"
+                  aria-haspopup="dialog"
                   (click)="show(row.historialAuditoriaId)"
                 >
                   Ver cambios
@@ -95,19 +94,8 @@
   La paginación y los filtros se aplican en el servidor. Los eventos son de solo lectura.
 </p>
 @if (selected() !== null) {
-  <section
-    id="history-detail"
-    class="panel mt-4"
-    aria-label="Detalle del historial"
-    [attr.aria-busy]="detail.loading()"
-  >
-    <div class="panel-heading">
-      <h2>Detalle del historial {{ selected() }}</h2>
-      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="closeDetail()">
-        Cerrar detalle
-      </button>
-    </div>
-    <div class="panel-body">
+  <app-information-dialog [title]="'Cambios del historial ' + selected()" (dismiss)="closeDetail()">
+    <div [attr.aria-busy]="detail.loading()">
       <app-feedback [message]="detail.error()" />
       @if (detail.loading()) {
         <p role="status">Consultando valores del evento…</p>
@@ -115,8 +103,8 @@
         <dl class="row mb-4">
           <dt class="col-sm-3">Usuario</dt>
           <dd class="col-sm-9">{{ item.nombreUsuario }} (ID {{ item.usuarioId }})</dd>
-          <dt class="col-sm-3">Fecha y hora (UTC)</dt>
-          <dd class="col-sm-9">{{ item.fechaHora | utcTimestamp }}</dd>
+          <dt class="col-sm-3">Fecha y hora (Perú)</dt>
+          <dd class="col-sm-9">{{ item.fechaHora | peruTimestamp }}</dd>
           <dt class="col-sm-3">Área vinculada</dt>
           <dd class="col-sm-9">{{ item.nombreArea }}</dd>
           <dt class="col-sm-3">Registro financiero</dt>
@@ -139,5 +127,5 @@
         <app-history-changes [values]="item.valoresModificados" />
       }
     </div>
-  </section>
+  </app-information-dialog>
 }

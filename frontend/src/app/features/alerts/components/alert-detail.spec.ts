@@ -51,7 +51,7 @@ describe('Alert detail scope and plain-text evidence', () => {
     await fixture.whenStable();
     expect((fixture.nativeElement as HTMLElement).querySelector('app-alert-actions')).toBeNull();
   });
-  it('preserves raw evidence and justification as text, including malformed or unknown JSON', async () => {
+  it('omite evidencia sin interpretación segura y conserva la justificación como texto', async () => {
     TestBed.configureTestingModule({
       imports: [AlertDetail],
       providers: [
@@ -73,7 +73,9 @@ describe('Alert detail scope and plain-text evidence', () => {
     );
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.textContent).toContain('<script>evidencia</script>');
+    expect(el.textContent).not.toContain('<script>evidencia</script>');
+    expect(el.textContent).toContain('No hay referencias de evidencias disponibles para mostrar.');
+    expect(el.querySelector('pre,details')).toBeNull();
     expect(el.querySelector('script,img')).toBeNull();
     expect(el.textContent).toContain('Cierre con <img');
   });

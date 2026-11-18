@@ -21,8 +21,8 @@
       <dd class="col-sm-3">{{ item.nombreArea }}</dd>
       <dt class="col-sm-3">Importado por</dt>
       <dd class="col-sm-3">{{ item.nombreUsuario }}</dd>
-      <dt class="col-sm-3">Importación (UTC)</dt>
-      <dd class="col-sm-3">{{ item.fechaImportacion | date: 'dd/MM/yyyy HH:mm' : 'UTC' }}</dd>
+      <dt class="col-sm-3">Importación (hora de Perú)</dt>
+      <dd class="col-sm-3">{{ item.fechaImportacion | date: 'dd/MM/yyyy HH:mm' : '-0500' }}</dd>
       <dt class="col-sm-3">Total de registros</dt>
       <dd class="col-sm-3">{{ item.totalRegistros }}</dd>
     </dl>

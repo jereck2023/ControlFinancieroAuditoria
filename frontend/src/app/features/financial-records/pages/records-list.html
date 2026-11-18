@@ -28,15 +28,18 @@
       Actualizar
     </button>
   </div>
-  @if (loading()) {
-    <p class="empty-state" role="status">Cargando registros…</p>
-  } @else if (!error()) {
-    <app-records-table [records]="records()" />
+  @if (!error()) {
+    <app-records-table
+      [records]="records()"
+      [busy]="loading()"
+      [showIdSearch]="true"
+      (idSearch)="searchId($event)"
+    />
   }
 </section>
 <p class="form-text mt-3">
-  Los filtros afectan la consulta en pantalla. La exportación incluye todos los registros que la API
-  le permite consultar.
+  Los filtros afectan la consulta en pantalla. La exportación incluye todas las operaciones de su
+  alcance autorizado, no solo los resultados filtrados.
 </p>
 @if (policy.can('write-financial')) {
   <p class="form-text">

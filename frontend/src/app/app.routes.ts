@@ -139,6 +139,12 @@ export const routes: Routes = [
         loadComponent: () => import('./features/areas/pages/area-form').then((m) => m.AreaForm),
       },
       {
+        path: 'usuarios-mi-area',
+        canActivate: [permissionGuard('read-area-users')],
+        title: 'Usuarios de mi área | CFA',
+        loadComponent: () => import('./features/users/pages/area-users').then((m) => m.AreaUsers),
+      },
+      {
         path: 'usuarios',
         canActivate: [permissionGuard('manage-users')],
         title: 'Usuarios | CFA',

@@ -51,8 +51,8 @@ describe('Trace query dates, IDs and endpoint-specific filters', () => {
       documentoFinancieroId: 4,
       registroFinancieroId: 6,
       tipoAccion: 'Modificacion',
-      fechaDesde: '2026-11-11T01:02:00.0000000Z',
-      fechaHasta: '2026-11-11T02:03:04.9999999Z',
+      fechaDesde: '2026-11-11T06:02:00.0000000Z',
+      fechaHasta: '2026-11-11T07:03:04.9999999Z',
     });
     const query = activityQuery(value);
     expect(query.tipoActividad).toBe('LoginExitoso');

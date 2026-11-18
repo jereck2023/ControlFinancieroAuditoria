@@ -72,16 +72,29 @@ export function changeFields(value: DisplayJson): ChangeField[] {
   const before = object(value['Anteriores']) ? value['Anteriores'] : {};
   const after = object(value['Nuevos']) ? value['Nuevos'] : {};
   const keys = [...new Set([...Object.keys(before), ...Object.keys(after)])];
-  return keys.map((campo) => ({
-    campo,
-    etiqueta: Object.hasOwn(labels, campo) ? labels[campo] : campo,
-    anterior: Object.hasOwn(before, campo) ? displayJson(before[campo]) : 'No existía',
-    nuevo: Object.hasOwn(after, campo) ? displayJson(after[campo]) : 'No informado',
-    modificado:
-      !Object.hasOwn(before, campo) ||
-      !Object.hasOwn(after, campo) ||
-      jsonText(before[campo]) !== jsonText(after[campo]),
-  }));
+  const readable = (value: DisplayJson | undefined, campo: string): string => {
+    if (value !== null && typeof value === 'object' && !(value instanceof ExactAuditNumber))
+      return 'Valor no disponible para presentación';
+    if (
+      campo === 'FechaOperacion' &&
+      typeof value === 'string' &&
+      /^\d{4}-\d{2}-\d{2}$/.test(value)
+    )
+      return value.split('-').reverse().join('/');
+    return displayJson(value);
+  };
+  return keys
+    .filter((campo) => Object.hasOwn(labels, campo))
+    .map((campo) => ({
+      campo,
+      etiqueta: Object.hasOwn(labels, campo) ? labels[campo] : campo,
+      anterior: Object.hasOwn(before, campo) ? readable(before[campo], campo) : 'No existía',
+      nuevo: Object.hasOwn(after, campo) ? readable(after[campo], campo) : 'No informado',
+      modificado:
+        !Object.hasOwn(before, campo) ||
+        !Object.hasOwn(after, campo) ||
+        jsonText(before[campo]) !== jsonText(after[campo]),
+    }));
 }
 function isHistoryRow(value: unknown): value is HistoryRowResponse {
   if (!value || typeof value !== 'object') return false;

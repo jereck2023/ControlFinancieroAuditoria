@@ -21,6 +21,8 @@ import { AbstractControl } from '@angular/forms';
         y al final.
       } @else if (control().hasError('utcDate')) {
         Ingrese una fecha y hora UTC válidas entre los años 0001 y 9999.
+      } @else if (control().hasError('peruDate')) {
+        Ingrese una fecha y hora de Perú válidas dentro del rango permitido.
       } @else if (control().hasError('operationDate')) {
         Ingrese una fecha válida entre los años 0001 y 9999.
       } @else if (control().hasError('pattern')) {

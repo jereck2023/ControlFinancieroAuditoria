@@ -1,6 +1,6 @@
 # CFA · Frontend institucional
 
-Implementación de los módulos 1–9: base Angular, autenticación, administración de áreas/usuarios, registros/documentos financieros con importación/exportación Excel, historial de auditoría, bitácora, reportes, detección de anomalías mediante reglas predefinidas y gestión de alertas. El código del frontend se encuentra en este directorio. La única corrección funcional autorizada en backend fue mover el registro de bitácora dentro de `UsuariosController.DesactivarUsuario` durante el cierre de O3. No se modificaron migraciones ni esquema. Las pruebas reales utilizaron los entornos de pruebas autorizados, incluida la base temporal independiente de O3.
+Implementación de los módulos 1–9: base Angular, autenticación, administración de áreas/usuarios, registros/documentos financieros con importación/exportación Excel, historial de auditoría, bitácora, reportes, detección de anomalías mediante reglas predefinidas y gestión de alertas. El código del frontend se encuentra en este directorio. Los cambios autorizados de backend incluyen la corrección de autodesactivación de O3 y el [Bloque 1 de permisos](docs/correcciones-permisos-bloque-1.md): restricción del catálogo de áreas y consulta propia de usuarios para JefeArea. No se modificaron migraciones ni esquema. Las pruebas reales utilizaron los entornos de pruebas autorizados, incluida la base temporal independiente de O3.
 
 **Cierre técnico del 12/11/2026:** los nueve módulos y las pruebas funcionales O1–O10, más la suspensión real de Windows, están aprobados. La revisión final ejecutó **143 pruebas automatizadas en 32 archivos**, compilación Angular de producción y compilación Release del backend con la corrección O3. Consulte el [informe técnico final](docs/revision-tecnica-final.md) y el [plan consolidado](docs/plan-validacion-integral.md). Las cifras y pendientes en los informes por entrega que siguen son históricos; O3 y el umbral real de O6 se cerraron posteriormente. Este cierre académico no certifica un despliegue de producción.
 
@@ -35,8 +35,9 @@ Para producción, servir el frontend y `/api` bajo el mismo origen HTTPS. El pro
 
 - Login, persistencia del JWT tras F5, expiración real según `exp`, logout local y cambio de contraseña obligatorio o voluntario.
 - Guards de sesión/permiso, menús por acceso, 401 y 403 diferenciados y mensajes de validación del servidor.
-- Áreas: consulta autenticada, búsqueda y paginación local. Administrador: creación, edición y activar/desactivar.
+- Áreas: directorio para Administrador o Auditor, búsqueda y paginación local. Solo Administrador crea, edita y activa/desactiva; PersonalArea y JefeArea por sí solos no acceden al directorio.
 - Usuarios (Administrador): listado, filtros locales, alta, edición, roles múltiples, activar/desactivar y restablecimiento de contraseña. Protección visual del último administrador, respaldada por el servidor.
+- Usuarios de mi área (JefeArea): consulta de nombres, roles y estado del equipo de su área activa, sin datos de contraseñas ni acciones administrativas. El alcance lo impone el backend. Se mantienen los permisos acumulativos en cuentas con varios roles.
 - Documentos y registros: consulta por permisos, filtros y paginación local, detalles, formularios individuales y control de concurrencia RowVersion.
 - Importación Excel: validación del servidor, vista previa de solo lectura, errores por fila y confirmación del mismo archivo/hash. Exportaciones exclusivamente desde la API.
 - Historial de auditoría: consultas y detalle de valores anteriores/nuevos, identificación del usuario y fechas UTC. Importes históricos preservados sin redondeo de JavaScript.

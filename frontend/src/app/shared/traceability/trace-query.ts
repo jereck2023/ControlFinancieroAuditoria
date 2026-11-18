@@ -69,6 +69,26 @@ export const utcDateRange: ValidatorFn = (control: AbstractControl): ValidationE
     : null;
 };
 
+/** datetime-local is explicitly Peru time, independent of the browser's own timezone. */
+export function peruQueryDate(value: string, endOfSecond = false): string | undefined {
+  if (!value) return undefined;
+  const normalized = value.length === 16 ? value + ':00' : value;
+  const date = new Date(normalized + '-05:00');
+  if (!Number.isFinite(date.getTime())) return undefined;
+  const utc = date.toISOString();
+  if (!/^\d{4}-/.test(utc) || utc.startsWith('0000')) return undefined;
+  return utc.slice(0, 19) + (endOfSecond ? '.9999999Z' : '.0000000Z');
+}
+export const optionalPeruDate: ValidatorFn = (control: AbstractControl): ValidationErrors | null =>
+  control.value === '' || (!optionalUtcDate(control) && peruQueryDate(control.value))
+    ? null
+    : { peruDate: true };
+export const peruDateRange: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+  const from = peruQueryDate(control.get('fechaDesde')?.value ?? '');
+  const until = peruQueryDate(control.get('fechaHasta')?.value ?? '', true);
+  return from && until && from > until ? { dateRange: true } : null;
+};
+
 export function baseTraceQuery(value: TraceFiltersValue): TraceQueryBase {
   return {
     pagina: 1,
@@ -77,8 +97,8 @@ export function baseTraceQuery(value: TraceFiltersValue): TraceQueryBase {
     ...(value.documentoFinancieroId !== null
       ? { documentoFinancieroId: value.documentoFinancieroId }
       : {}),
-    ...(value.fechaDesde ? { fechaDesde: utcQueryDate(value.fechaDesde) } : {}),
-    ...(value.fechaHasta ? { fechaHasta: utcQueryDate(value.fechaHasta, true) } : {}),
+    ...(value.fechaDesde ? { fechaDesde: peruQueryDate(value.fechaDesde) } : {}),
+    ...(value.fechaHasta ? { fechaHasta: peruQueryDate(value.fechaHasta, true) } : {}),
   };
 }
 export function traceHttpParams(

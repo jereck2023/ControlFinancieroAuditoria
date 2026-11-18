@@ -1,14 +1,14 @@
-<div class="panel-body">
+<div>
   <div class="d-flex align-items-center gap-3 flex-wrap mb-3">
     <h3 class="h5 mb-0">{{ alert().titulo }}</h3>
     <app-alert-status [state]="alert().estado" />
   </div>
   <p class="alert-text">{{ alert().descripcion }}</p>
   <dl class="row">
-    <dt class="col-sm-4">Evento (UTC)</dt>
-    <dd class="col-sm-8">{{ alert().fechaHoraEvento | utcTimestamp }}</dd>
-    <dt class="col-sm-4">Detección (UTC)</dt>
-    <dd class="col-sm-8">{{ alert().fechaHoraDeteccion | utcTimestamp }}</dd>
+    <dt class="col-sm-4">Evento (hora de Perú)</dt>
+    <dd class="col-sm-8">{{ alert().fechaHoraEvento | peruTimestamp }}</dd>
+    <dt class="col-sm-4">Detección (hora de Perú)</dt>
+    <dd class="col-sm-8">{{ alert().fechaHoraDeteccion | peruTimestamp }}</dd>
     <dt class="col-sm-4">Regla</dt>
     <dd class="col-sm-8">
       {{ alert().nombreRegla }} · ID {{ alert().reglaAnomaliaId
@@ -40,7 +40,7 @@
       }
     </dd>
     <dt class="col-sm-4">Campo modificado</dt>
-    <dd class="col-sm-8">{{ alert().campoModificado ?? 'No aplica' }}</dd>
+    <dd class="col-sm-8">{{ fieldLabel(alert().campoModificado) }}</dd>
     <dt class="col-sm-4">Revisión iniciada por</dt>
     <dd class="col-sm-8">
       {{
@@ -49,10 +49,10 @@
           : 'Sin revisión iniciada'
       }}
     </dd>
-    <dt class="col-sm-4">Inicio de revisión (UTC)</dt>
+    <dt class="col-sm-4">Inicio de revisión (hora de Perú)</dt>
     <dd class="col-sm-8">
       @if (alert().fechaInicioRevisionUtc; as date) {
-        {{ date | utcTimestamp }}
+        {{ date | peruTimestamp }}
       } @else {
         No registrado
       }
@@ -65,10 +65,10 @@
           : 'Sin cierre registrado'
       }}
     </dd>
-    <dt class="col-sm-4">Cierre (UTC)</dt>
+    <dt class="col-sm-4">Cierre (hora de Perú)</dt>
     <dd class="col-sm-8">
       @if (alert().fechaCierreUtc; as date) {
-        {{ date | utcTimestamp }}
+        {{ date | peruTimestamp }}
       } @else {
         No registrado
       }
@@ -79,13 +79,16 @@
     </dd>
   </dl>
   <h3 class="h6">Evidencias registradas</h3>
-  @for (source of evidence(); track $index) {
-    <p>{{ source.name }} · IDs: {{ source.ids.join(', ') }}</p>
-  }
-  <details>
-    <summary>Ver evidencias completas</summary>
-    <pre class="mt-3">{{ alert().evidenciasJson || 'Sin evidencia registrada.' }}</pre>
-  </details>
+  <dl class="row">
+    @for (source of evidence(); track $index) {
+      <dt class="col-sm-4">{{ source.name }}</dt>
+      <dd class="col-sm-8">Registros relacionados: {{ source.ids.join(', ') }}</dd>
+    } @empty {
+      <dd class="col-12 text-secondary">
+        No hay referencias de evidencias disponibles para mostrar.
+      </dd>
+    }
+  </dl>
   @if (policy.can('read-traceability')) {
     <div class="d-flex flex-wrap gap-3 mt-3">
       <a routerLink="/historial-auditoria">Abrir consulta de historial</a
