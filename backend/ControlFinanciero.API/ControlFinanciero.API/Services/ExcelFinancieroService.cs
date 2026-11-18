@@ -183,22 +183,20 @@ namespace ControlFinanciero.API.Services
 
 
         public byte[] GenerarExcel(
-            List<RegistroFinancieroResponse> registros)
+            List<RegistroFinancieroResponse> registros, PerfilExportacionFinanciera perfil)
         {
             using var libro = new XLWorkbook();
 
             var hoja = libro.Worksheets.Add("RegistrosFinancieros");
 
-            string[] encabezados =
-            {
-        "RegistroFinancieroId",
-        "TipoOperacion",
-        "Descripcion",
-        "FechaOperacion",
-        "Monto",
-        "Area",
-        "UsuarioCreador"
-    };
+            bool incluirId = perfil != PerfilExportacionFinanciera.PersonalArea;
+            bool incluirArea = perfil == PerfilExportacionFinanciera.Auditor;
+            var columnas = new List<string>();
+            if (incluirId) columnas.Add("RegistroFinancieroId");
+            columnas.AddRange(new[] { "TipoOperacion", "Descripcion", "FechaOperacion", "Monto" });
+            if (incluirArea) columnas.Add("Area");
+            if (incluirId) columnas.Add("UsuarioCreador");
+            string[] encabezados = columnas.ToArray();
 
             for (int columna = 0; columna < encabezados.Length; columna++)
             {
@@ -213,20 +211,18 @@ namespace ControlFinanciero.API.Services
 
             foreach (var registro in registros)
             {
-                hoja.Cell(fila, 1).Value = registro.RegistroFinancieroId;
-                hoja.Cell(fila, 2).Value = registro.TipoOperacion;
-                hoja.Cell(fila, 3).Value = registro.Descripcion;
+                int columna = 1;
+                if (incluirId) hoja.Cell(fila, columna++).Value = registro.RegistroFinancieroId;
+                hoja.Cell(fila, columna++).Value = registro.TipoOperacion;
+                hoja.Cell(fila, columna++).Value = registro.Descripcion;
 
-                hoja.Cell(fila, 4).Value =
+                hoja.Cell(fila, columna).Value =
                     registro.FechaOperacion.ToDateTime(TimeOnly.MinValue);
-
-                hoja.Cell(fila, 4).Style.DateFormat.Format = "dd/mm/yyyy";
-
-                hoja.Cell(fila, 5).Value = registro.Monto;
-                hoja.Cell(fila, 5).Style.NumberFormat.Format = "#,##0.00";
-
-                hoja.Cell(fila, 6).Value = registro.NombreArea;
-                hoja.Cell(fila, 7).Value = registro.NombreUsuario;
+                hoja.Cell(fila, columna++).Style.DateFormat.Format = "dd/mm/yyyy";
+                hoja.Cell(fila, columna).Value = registro.Monto;
+                hoja.Cell(fila, columna++).Style.NumberFormat.Format = "#,##0.00";
+                if (incluirArea) hoja.Cell(fila, columna++).Value = registro.NombreArea;
+                if (incluirId) hoja.Cell(fila, columna).Value = registro.NombreUsuario;
 
                 fila++;
             }

@@ -36,7 +36,7 @@ namespace ControlFinanciero.API.Controllers
         [Authorize(Roles = Roles.PersonalArea + "," +
                            Roles.JefeArea + "," +
                            Roles.Auditor)]
-        public async Task<IActionResult> ObtenerRegistros()
+        public async Task<IActionResult> ObtenerRegistros([FromQuery] FiltroRegistrosFinancierosRequest filtro)
         {
             var usuario = await ObtenerUsuarioActual();
 
@@ -58,6 +58,9 @@ namespace ControlFinanciero.API.Controllers
                 consulta = consulta.Where(
                     r => r.AreaId == usuario.AreaId);
             }
+
+            if (filtro.RegistroFinancieroId.HasValue)
+                consulta = consulta.Where(r => r.RegistroFinancieroId == filtro.RegistroFinancieroId.Value);
 
             var registros = await consulta
                 .OrderByDescending(r => r.FechaOperacion)
@@ -457,7 +460,7 @@ namespace ControlFinanciero.API.Controllers
                 })
                 .ToListAsync();
 
-            byte[] contenido = _excelService.GenerarExcel(registros);
+            byte[] contenido = _excelService.GenerarExcel(registros, PerfilesExportacionFinanciera.Obtener(User));
 
             string nombreArchivo =
                 $"CFA_RegistrosFinancieros_{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx";

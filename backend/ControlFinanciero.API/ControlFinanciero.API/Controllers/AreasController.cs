@@ -60,6 +60,7 @@ namespace ControlFinanciero.API.Controllers
 
 
         [HttpGet]
+        [Authorize(Roles = "Administrador,Auditor")]
         public async Task<ActionResult<List<AreaResponse>>> ObtenerAreas()
         {
             var areas = await _context.Areas

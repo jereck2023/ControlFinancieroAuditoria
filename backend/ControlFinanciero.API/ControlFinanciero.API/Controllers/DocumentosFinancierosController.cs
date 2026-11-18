@@ -289,7 +289,7 @@ namespace ControlFinanciero.API.Controllers
                 })
                 .ToListAsync();
 
-            byte[] contenido = _excelService.GenerarExcel(registros);
+            byte[] contenido = _excelService.GenerarExcel(registros, PerfilesExportacionFinanciera.Obtener(User));
 
             string nombreArchivo =
                 $"CFA_Documento_{documento.DocumentoFinancieroId}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx";
